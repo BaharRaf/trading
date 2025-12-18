@@ -45,6 +45,8 @@
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
       <version>${jakartaee.version}</version>
+      <!-- Provided by WildFly (Jakarta EE runtime) -->
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
@@ -56,7 +58,11 @@
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-frontend-jaxws</artifactId>
       <version>${cxf.version}</version>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>${cxf.version}</version>
     </dependency>
   </dependencies>
 
@@ -70,21 +76,38 @@
           <ejbVersion>4.0</ejbVersion>
         </configuration>
       </plugin>
+
+      <!--
+        Generate JAXB/JAX-WS classes from the TradingService WSDL.
+        CXF's dynamic client (JaxWsDynamicClientFactory) requires that the
+        generated packages contain either an ObjectFactory or a jaxb.index.
+        Otherwise you'll see a JAXBException like:
+        "... enthält ObjectFactory.class oder jaxb.index nicht".
+      -->
       <plugin>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-codegen-plugin</artifactId>
         <version>${cxf.version}</version>
         <executions>
           <execution>
-            <id>generate-sources</id>
+            <id>generate-tradingservice-ws</id>
             <phase>generate-sources</phase>
-            <configuration>
-              <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
-              <wsdlRoot>${basedir}/src/main/resources/META-INF/wsdl-consumed</wsdlRoot>
-            </configuration>
             <goals>
               <goal>wsdl2java</goal>
             </goals>
+            <configuration>
+              <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+              <wsdlOptions>
+                <wsdlOption>
+                  <wsdl>https://edu.dedisys.org/ds-finance/ws/TradingService?wsdl</wsdl>
+                  <extraargs>
+                    <!-- Force all generated types into a stable package expected by CXF at runtime -->
+                    <extraarg>-p</extraarg>
+                    <extraarg>net.froihofer.dsfinance.ws.trading.api</extraarg>
+                  </extraargs>
+                </wsdlOption>
+              </wsdlOptions>
+            </configuration>
           </execution>
         </executions>
       </plugin>

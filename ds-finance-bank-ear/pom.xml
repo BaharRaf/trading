@@ -46,6 +46,22 @@
       <version>2.0-SNAPSHOT</version>
       <type>war</type>
     </dependency>
+
+    <!--
+      TradingServiceAdapterBean uses Apache CXF's dynamic JAX-WS client
+      (JaxWsDynamicClientFactory). WildFly does not expose these CXF classes
+      to deployments by default, so we bundle the CXF runtime in the EAR lib/.
+    -->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxws</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
   </dependencies>
   
   <profiles>
