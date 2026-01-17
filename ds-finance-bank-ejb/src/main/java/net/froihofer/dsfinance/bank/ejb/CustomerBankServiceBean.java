@@ -1,21 +1,37 @@
 package net.froihofer.dsfinance.bank.ejb;
 
 import jakarta.annotation.Resource;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.ejb.EJB;
 import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateless;
-import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.NoResultException;
+
+import java.math.BigDecimal;
 import java.util.List;
+
 import net.froihofer.dsfinance.bank.api.CustomerBankService;
+import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
+import net.froihofer.dsfinance.bank.entity.CustomerEntity;
 
 @Stateless(name = "CustomerBankServiceBean")
+@RolesAllowed("customer")
 public class CustomerBankServiceBean implements CustomerBankService {
 
-  @Inject
+  @EJB
   private TradingServiceAdapterBean trading;
 
   @Resource
   private SessionContext sessionContext;
+
+  @PersistenceContext
+  private EntityManager em;
+
+  @EJB
+  private EmployeeBankServiceBean employeeService;
 
   @Override
   public List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery) {
@@ -25,7 +41,38 @@ public class CustomerBankServiceBean implements CustomerBankService {
   @Override
   public String whoAmI() {
     return sessionContext != null && sessionContext.getCallerPrincipal() != null
-        ? sessionContext.getCallerPrincipal().getName()
-        : "UNKNOWN";
+            ? sessionContext.getCallerPrincipal().getName()
+            : "UNKNOWN";
+  }
+
+  @Override
+  public BigDecimal buyStock(String symbol, int quantity) {
+    String username = sessionContext.getCallerPrincipal().getName();
+    CustomerEntity customer = findCustomerByUsername(username);
+    return employeeService.buyStockForCustomer(customer.getId(), symbol, quantity);
+  }
+
+  @Override
+  public BigDecimal sellStock(String symbol, int quantity) {
+    String username = sessionContext.getCallerPrincipal().getName();
+    CustomerEntity customer = findCustomerByUsername(username);
+    return employeeService.sellStockForCustomer(customer.getId(), symbol, quantity);
+  }
+
+  @Override
+  public PortfolioDTO getMyPortfolio() {
+    String username = sessionContext.getCallerPrincipal().getName();
+    CustomerEntity customer = findCustomerByUsername(username);
+    return employeeService.getCustomerPortfolio(customer.getId());
+  }
+
+  private CustomerEntity findCustomerByUsername(String username) {
+    try {
+      return em.createQuery("SELECT c FROM CustomerEntity c WHERE c.username = :username", CustomerEntity.class)
+              .setParameter("username", username)
+              .getSingleResult();
+    } catch (NoResultException e) {
+      throw new IllegalStateException("Customer not found for username: " + username);
+    }
   }
 }
