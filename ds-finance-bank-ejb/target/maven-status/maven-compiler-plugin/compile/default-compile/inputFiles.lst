@@ -1,7 +1,11 @@
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/ejb/CustomerBankServiceBean.java
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/ejb/EmployeeBankServiceBean.java
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/ejb/TradingServiceAdapterBean.java
+/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/entity/BankEntity.java
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/entity/CustomerEntity.java
+/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/entity/DepotEntity.java
+/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/entity/DepotPositionEntity.java
+/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/dsfinance/bank/entity/StockEntity.java
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/src/main/java/net/froihofer/util/jboss/WildflyAuthDBHelper.java
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/target/generated-sources/cxf/net/froihofer/dsfinance/ws/trading/api/Buy.java
 /Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-ejb/target/generated-sources/cxf/net/froihofer/dsfinance/ws/trading/api/BuyResponse.java

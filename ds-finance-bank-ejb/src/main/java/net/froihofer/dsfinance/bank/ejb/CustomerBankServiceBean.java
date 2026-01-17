@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import net.froihofer.dsfinance.bank.api.CustomerBankService;
-import net.froihofer.dsfinance.bank.api.EmployeeBankService;  // ← INTERFACE, not Bean!
+import net.froihofer.dsfinance.bank.api.EmployeeBankService;  // ✅ INTERFACE, not Bean
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 import net.froihofer.dsfinance.bank.entity.CustomerEntity;
@@ -31,9 +31,8 @@ public class CustomerBankServiceBean implements CustomerBankService {
   @PersistenceContext
   private EntityManager em;
 
-  // ✅ FIXED: Use interface EmployeeBankService, NOT EmployeeBankServiceBean
   @EJB
-  private EmployeeBankService employeeService;
+  private EmployeeBankService employeeService;  // ✅ FIXED: Use interface
 
   @Override
   public List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery) {
@@ -74,7 +73,7 @@ public class CustomerBankServiceBean implements CustomerBankService {
               .setParameter("username", username)
               .getSingleResult();
     } catch (NoResultException e) {
-      throw new IllegalStateException("Customer not found for username: " + username);
+      throw new IllegalStateException("No customer found for username: " + username);
     }
   }
 }

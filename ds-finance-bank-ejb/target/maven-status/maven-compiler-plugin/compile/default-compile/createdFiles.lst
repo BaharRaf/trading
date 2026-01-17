@@ -1,7 +1,11 @@
 net/froihofer/dsfinance/ws/trading/api/GetStockQuoteHistory.class
 net/froihofer/dsfinance/ws/trading/api/TradingWSException.class
+net/froihofer/dsfinance/bank/entity/StockEntity.class
 net/froihofer/dsfinance/ws/trading/api/GetStockQuotesResponse.class
 net/froihofer/dsfinance/ws/trading/api/SellResponse.class
+net/froihofer/dsfinance/bank/entity/BankEntity.class
+net/froihofer/dsfinance/bank/entity/DepotPositionEntity.class
+net/froihofer/dsfinance/bank/entity/DepotEntity.class
 net/froihofer/dsfinance/ws/trading/api/BuyResponse.class
 net/froihofer/dsfinance/ws/trading/api/GetStockQuoteHistoryResponse.class
 net/froihofer/dsfinance/ws/trading/api/Buy.class
