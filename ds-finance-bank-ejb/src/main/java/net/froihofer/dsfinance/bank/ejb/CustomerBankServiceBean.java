@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import net.froihofer.dsfinance.bank.api.CustomerBankService;
+import net.froihofer.dsfinance.bank.api.EmployeeBankService;  // ← INTERFACE, not Bean!
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 import net.froihofer.dsfinance.bank.entity.CustomerEntity;
@@ -30,8 +31,9 @@ public class CustomerBankServiceBean implements CustomerBankService {
   @PersistenceContext
   private EntityManager em;
 
+  // ✅ FIXED: Use interface EmployeeBankService, NOT EmployeeBankServiceBean
   @EJB
-  private EmployeeBankServiceBean employeeService;
+  private EmployeeBankService employeeService;
 
   @Override
   public List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery) {
