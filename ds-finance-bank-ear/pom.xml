@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>ds-finance-bank</artifactId>
+    <groupId>net.froihofer</groupId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+
+  <groupId>net.froihofer</groupId>
+  <artifactId>ds-finance-bank-ear</artifactId>
+  <version>2.0-SNAPSHOT</version>
+  <packaging>ear</packaging>
+
+  <name>ds-finance-bank-ear</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ear-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <version>8</version>
+          <applicationName>ds-finance-bank-ear</applicationName>
+          <defaultLibBundleDir>lib</defaultLibBundleDir>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <dependencies>
+    <dependency>
+      <groupId>net.froihofer</groupId>
+      <artifactId>ds-finance-bank-ejb</artifactId>
+      <version>2.0-SNAPSHOT</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
+      <groupId>net.froihofer</groupId>
+      <artifactId>ds-finance-bank-web</artifactId>
+      <version>2.0-SNAPSHOT</version>
+      <type>war</type>
+    </dependency>
+
+    <!--
+      TradingServiceAdapterBean uses Apache CXF's dynamic JAX-WS client
+      (JaxWsDynamicClientFactory). WildFly does not expose these CXF classes
+      to deployments by default, so we bundle the CXF runtime in the EAR lib/.
+    -->
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-frontend-jaxws</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+  </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <phase>install</phase>
+                <configuration>
+                  <target>
+                    <copy todir="${wildfly.deploy.dir}" file="${project.build.directory}/${project.build.finalName}.ear" />
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

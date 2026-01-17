@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<webservices xmlns="http://www.jboss.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    version="1.0"
+    xsi:schemaLocation="http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss_webservices_1_0.xsd">
+  <!--
+    https://docs.wildfly.org/18/Developer_Guide.html#JAX_WS_Advanced_User_Guide
+    http://anonsvn.jboss.org/repos/jbossws/spi/trunk/src/main/resources/schema/jboss_web_services_1.0.xsd
+  -->
+  <context-root>/ds-finance-bank/ws</context-root>
+  <!--port-component>
+    <ejb-name>BankService</ejb-name-->
+    <!--port-component-name>BankServicePort</port-component-name>
+    <port-component-uri>/BankService</port-component-uri-->
+    <!--auth-method>BASIC</auth-method>
+    <secure-wsdl-access>false</secure-wsdl-access>
+  </port-component-->
+  
+</webservices>

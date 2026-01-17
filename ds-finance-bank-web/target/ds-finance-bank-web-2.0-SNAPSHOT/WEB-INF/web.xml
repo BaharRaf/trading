@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">  <!--======================================================================
+    Development configuration
+  =======================================================================-->
+  <context-param>
+    <param-name>jakarta.faces.FACELETS_REFRESH_PERIOD</param-name>
+    <param-value>2</param-value>
+  </context-param>
+  <context-param>
+    <param-name>jakarta.faces.PROJECT_STAGE</param-name>
+    <param-value>Development</param-value>
+  </context-param>
+  
+    <!--======================================================================
+    Main configuration 
+  ==========================================================================-->
+  <context-param>
+    <param-name>jakarta.faces.FACELETS_SKIP_COMMENTS</param-name>
+    <param-value>true</param-value>
+  </context-param>
+  <context-param>
+    <param-name>jakarta.faces.INTERPRET_EMPTY_STRING_SUBMITTED_VALUES_AS_NULL</param-name>
+    <param-value>true</param-value>
+  </context-param>
+  
+  <!-- Faces Servlet -->
+  <servlet>
+    <servlet-name>Faces Servlet</servlet-name>
+    <servlet-class>jakarta.faces.webapp.FacesServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <!-- Faces Servlet Mapping -->
+  <servlet-mapping>
+    <servlet-name>Faces Servlet</servlet-name>
+    <url-pattern>*.xhtml</url-pattern>
+  </servlet-mapping>
+
+  <!-- Welcome files -->
+  <welcome-file-list>
+    <welcome-file>index.xhtml</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+  
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>DS Finance Bank</web-resource-name>
+      <description>Only authenticated users are allowed to access the Web application.</description>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>employee</role-name>
+      <role-name>customer</role-name>
+    </auth-constraint>
+        <!--user-data-constraint>
+      <description/>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint-->
+  </security-constraint>
+  <login-config>
+    <auth-method>BASIC</auth-method>
+    <realm-name>DS Finance Bank</realm-name>
+  </login-config>
+  <security-role>
+    <role-name>employee</role-name>
+  </security-role>
+  <security-role>
+    <role-name>customer</role-name>
+  </security-role>
+  
+  <session-config>
+    <session-timeout>30</session-timeout>
+  </session-config>
+</web-app>

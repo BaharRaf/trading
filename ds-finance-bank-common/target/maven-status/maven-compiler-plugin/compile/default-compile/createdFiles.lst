@@ -1,0 +1,4 @@
+net/froihofer/dsfinance/bank/dto/StockQuoteDTO.class
+net/froihofer/dsfinance/bank/api/EmployeeBankService.class
+net/froihofer/dsfinance/bank/api/CustomerBankService.class
+net/froihofer/dsfinance/bank/dto/CustomerDTO.class
