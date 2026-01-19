@@ -10,9 +10,9 @@ import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for publicStockQuote complex type.
+ * <p>Java-Klasse für publicStockQuote complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>Das folgende Schemafragment gibt den erwarteten Content an, der in dieser Klasse enthalten ist.
  * 
  * <pre>
  * &lt;complexType name="publicStockQuote"&gt;
@@ -53,7 +53,7 @@ public class PublicStockQuote {
     protected String symbol;
 
     /**
-     * Gets the value of the companyName property.
+     * Ruft den Wert der companyName-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -65,7 +65,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Sets the value of the companyName property.
+     * Legt den Wert der companyName-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
@@ -77,7 +77,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Gets the value of the lastTradePrice property.
+     * Ruft den Wert der lastTradePrice-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -89,7 +89,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Sets the value of the lastTradePrice property.
+     * Legt den Wert der lastTradePrice-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
@@ -101,7 +101,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Gets the value of the lastTradeTime property.
+     * Ruft den Wert der lastTradeTime-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -113,7 +113,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Sets the value of the lastTradeTime property.
+     * Legt den Wert der lastTradeTime-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
@@ -125,7 +125,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Gets the value of the marketCapitalization property.
+     * Ruft den Wert der marketCapitalization-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -137,7 +137,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Sets the value of the marketCapitalization property.
+     * Legt den Wert der marketCapitalization-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
@@ -149,7 +149,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Gets the value of the stockExchange property.
+     * Ruft den Wert der stockExchange-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -161,7 +161,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Sets the value of the stockExchange property.
+     * Legt den Wert der stockExchange-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
@@ -173,7 +173,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Gets the value of the symbol property.
+     * Ruft den Wert der symbol-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -185,7 +185,7 @@ public class PublicStockQuote {
     }
 
     /**
-     * Sets the value of the symbol property.
+     * Legt den Wert der symbol-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
