@@ -30,13 +30,12 @@ public class EmployeeClientGUI extends JFrame {
     private JTabbedPane tabbedPane;
 
     // Customer Management Tab
-    private JTextField txtCustomerNumber, txtFirstName, txtLastName, txtAddress;
+    private JTextField txtFirstName, txtLastName, txtAddress;
+    private JTextField txtLoginUsername;
+    private JPasswordField txtInitialPassword;
     private JTextField txtSearchFirstName, txtSearchLastName, txtSearchById;
     private JTable customerTable;
     private DefaultTableModel customerTableModel;
-    private JTextField txtLoginUsername;
-    private JPasswordField txtInitialPassword;
-
 
     // Trading Tab
     private JTextField txtTradeCustomerId, txtTradeSymbol, txtTradeQuantity;
@@ -85,12 +84,8 @@ public class EmployeeClientGUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Top: Create Customer Form
-        JPanel createPanel = new JPanel(new GridLayout(5, 2, 5, 5));
+        JPanel createPanel = new JPanel(new GridLayout(6, 2, 5, 5));
         createPanel.setBorder(BorderFactory.createTitledBorder("Create New Customer"));
-
-        createPanel.add(new JLabel("Customer Number:"));
-        txtCustomerNumber = new JTextField();
-        createPanel.add(txtCustomerNumber);
 
         createPanel.add(new JLabel("First Name:"));
         txtFirstName = new JTextField();
@@ -104,6 +99,15 @@ public class EmployeeClientGUI extends JFrame {
         txtAddress = new JTextField();
         createPanel.add(txtAddress);
 
+        createPanel.add(new JLabel("Login Username (WildFly):"));
+        txtLoginUsername = new JTextField();
+        createPanel.add(txtLoginUsername);
+
+        createPanel.add(new JLabel("Initial Password (WildFly):"));
+        txtInitialPassword = new JPasswordField();
+        createPanel.add(txtInitialPassword);
+
+        createPanel.add(new JLabel(""));
         JButton btnCreate = new JButton("Create Customer");
         btnCreate.addActionListener(e -> createCustomer());
         createPanel.add(btnCreate);
@@ -138,7 +142,7 @@ public class EmployeeClientGUI extends JFrame {
 
         panel.add(searchPanel, BorderLayout.CENTER);
 
-        // Bottom: Results Table - FIXED: Customer columns instead of stock columns
+        // Bottom: Results Table
         String[] columns = {"ID", "Customer Number", "First Name", "Last Name", "Address", "Username"};
         customerTableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -160,11 +164,35 @@ public class EmployeeClientGUI extends JFrame {
         SwingWorker<Long, Void> worker = new SwingWorker<>() {
             @Override
             protected Long doInBackground() throws Exception {
+                String firstName = txtFirstName.getText().trim();
+                String lastName = txtLastName.getText().trim();
+                String address = txtAddress.getText().trim();
+                String loginUser = txtLoginUsername.getText().trim();
+                String loginPass = new String(txtInitialPassword.getPassword());
+
+                // Validation
+                if (firstName.isEmpty() || lastName.isEmpty()) {
+                    throw new IllegalArgumentException("First and Last name are required");
+                }
+                if (loginUser.isEmpty()) {
+                    throw new IllegalArgumentException("Login Username (WildFly) is required");
+                }
+                if (loginPass.isEmpty()) {
+                    throw new IllegalArgumentException("Initial Password (WildFly) is required for customer authentication");
+                }
+
                 CustomerDTO customer = new CustomerDTO();
-                customer.setCustomerNumber(txtCustomerNumber.getText().trim());
-                customer.setFirstName(txtFirstName.getText().trim());
-                customer.setLastName(txtLastName.getText().trim());
-                customer.setAddress(txtAddress.getText().trim());
+                customer.setFirstName(firstName);
+                customer.setLastName(lastName);
+                customer.setAddress(address);
+
+                // CRITICAL: Generate customerNumber (required by EJB)
+                String customerNumber = "CUST-" + System.currentTimeMillis() + "-" + loginUser;
+                customer.setCustomerNumber(customerNumber);
+
+                // Set username and password for WildFly authentication
+                customer.setUsername(loginUser);
+                customer.setInitialPassword(loginPass);
 
                 return employeeService.createCustomer(customer);
             }
@@ -173,20 +201,30 @@ public class EmployeeClientGUI extends JFrame {
             protected void done() {
                 try {
                     Long id = get();
+                    String username = txtLoginUsername.getText().trim();
+                    
                     JOptionPane.showMessageDialog(EmployeeClientGUI.this,
-                            "Customer created successfully with ID: " + id,
+                            "Customer created successfully!\nID: " + id + "\n\n" +
+                            "Customer can now log in to Customer GUI with:\n" +
+                            "Username: " + username + "\n" +
+                            "Password: (the one you entered)",
                             "Success", JOptionPane.INFORMATION_MESSAGE);
 
                     // Clear fields
-                    txtCustomerNumber.setText("");
                     txtFirstName.setText("");
                     txtLastName.setText("");
                     txtAddress.setText("");
+                    txtLoginUsername.setText("");
+                    txtInitialPassword.setText("");
+
+                    // Refresh customer list
+                    searchCustomersByName();
 
                 } catch (Exception e) {
                     log.error("Failed to create customer", e);
+                    String errorMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
                     JOptionPane.showMessageDialog(EmployeeClientGUI.this,
-                            "Error: " + e.getCause().getMessage(),
+                            "Error creating customer: " + errorMsg,
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -243,7 +281,7 @@ public class EmployeeClientGUI extends JFrame {
                                 customer.getFirstName(),
                                 customer.getLastName(),
                                 customer.getAddress(),
-                                customer.getUsername()  // Added username column
+                                customer.getUsername()
                         });
                     } else {
                         JOptionPane.showMessageDialog(EmployeeClientGUI.this,
@@ -270,7 +308,7 @@ public class EmployeeClientGUI extends JFrame {
                     customer.getFirstName(),
                     customer.getLastName(),
                     customer.getAddress(),
-                    customer.getUsername()  // Added username column
+                    customer.getUsername()
             });
         }
     }
@@ -476,7 +514,7 @@ public class EmployeeClientGUI extends JFrame {
                         position.getQuantity(),
                         String.format("$%.2f", position.getAveragePurchasePrice()),
                         String.format("$%.2f", position.getCurrentPrice()),
-                        String.format("$%.2f", position.getTotalValue()),  // CHANGED: getValue() -> getTotalValue()
+                        String.format("$%.2f", position.getTotalValue()),
                         String.format("$%.2f", profitLoss)
                 });
             }
@@ -553,8 +591,8 @@ public class EmployeeClientGUI extends JFrame {
             stockTableModel.addRow(new Object[]{
                     quote.getSymbol(),
                     quote.getCompanyName(),
-                    String.format("$%.2f", quote.getLastTradePrice()),  // CHANGED: getPrice() -> getLastTradePrice()
-                    changeStr  // CHANGED: removed getTimestamp(), added change
+                    String.format("$%.2f", quote.getLastTradePrice()),
+                    changeStr
             });
         }
     }
