@@ -138,8 +138,8 @@ public class EmployeeClientGUI extends JFrame {
 
         panel.add(searchPanel, BorderLayout.CENTER);
 
-        // Bottom: Results Table
-        String[] columns = {"Symbol", "Company Name", "Last Price", "Change"};
+        // Bottom: Results Table - FIXED: Customer columns instead of stock columns
+        String[] columns = {"ID", "Customer Number", "First Name", "Last Name", "Address", "Username"};
         customerTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -242,7 +242,8 @@ public class EmployeeClientGUI extends JFrame {
                                 customer.getCustomerNumber(),
                                 customer.getFirstName(),
                                 customer.getLastName(),
-                                customer.getAddress()
+                                customer.getAddress(),
+                                customer.getUsername()  // Added username column
                         });
                     } else {
                         JOptionPane.showMessageDialog(EmployeeClientGUI.this,
@@ -268,7 +269,8 @@ public class EmployeeClientGUI extends JFrame {
                     customer.getCustomerNumber(),
                     customer.getFirstName(),
                     customer.getLastName(),
-                    customer.getAddress()
+                    customer.getAddress(),
+                    customer.getUsername()  // Added username column
             });
         }
     }
@@ -502,7 +504,7 @@ public class EmployeeClientGUI extends JFrame {
 
         panel.add(searchPanel, BorderLayout.NORTH);
 
-        String[] columns = {"Symbol", "Company Name", "Last Price", "Timestamp"};
+        String[] columns = {"Symbol", "Company Name", "Last Price", "Change"};
         stockTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
