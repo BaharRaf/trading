@@ -5,9 +5,12 @@ import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.swing.*;
 
 import net.froihofer.dsfinance.bank.api.CustomerBankService;
 import net.froihofer.dsfinance.bank.api.EmployeeBankService;
+import net.froihofer.dsfinance.bank.client.gui.CustomerClientGUI;
+import net.froihofer.dsfinance.bank.client.gui.EmployeeClientGUI;
 import net.froihofer.dsfinance.bank.dto.CustomerDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 import net.froihofer.util.AuthCallbackHandler;
@@ -16,10 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Minimal client for Project Part 2:
- *  - performs a remote EJB call (client -> server)
- *  - triggers a TradingService WebService call (server-side adapter)
- *  - persists a JPA entity (createCustomer)
+ * Main entry point for DS Finance Bank Client Application.
+ * Provides a GUI launcher dialog and also contains the CLI logic for Part 2 demo.
  */
 public class BankClient {
     private static final Logger log = LoggerFactory.getLogger(BankClient.class);
@@ -35,7 +36,13 @@ public class BankClient {
         return new WildflyJndiLookupHelper(new InitialContext(props), "ds-finance-bank-ear", "ds-finance-bank-ejb", "");
     }
 
-    private void run() {
+    /**
+     * Runs the Part 2 CLI demo:
+     *  - performs a remote EJB call (client -> server)
+     *  - triggers a TradingService WebService call (server-side adapter)
+     *  - persists a JPA entity (createCustomer)
+     */
+    private void runPart2Demo() {
         try {
             // 1) Client -> Server remote call (Employee)
             WildflyJndiLookupHelper employeeJndi = createJndiHelper("employee", "employeepass");
@@ -78,6 +85,43 @@ public class BankClient {
     }
 
     public static void main(String[] args) {
-        new BankClient().run();
+        // Set system look and feel for better UI appearance
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {
+        }
+
+        // Show launcher dialog
+        String[] options = {
+                "Employee GUI",
+                "Customer GUI",
+                "Part 2 CLI Demo",
+                "Exit"
+        };
+
+        int choice = JOptionPane.showOptionDialog(
+                null,
+                "Which client do you want to start?",
+                "DS Finance Bank - Client Launcher",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        if (choice == 0) {
+            // Launch Employee GUI
+            EmployeeClientGUI.main(new String[0]);
+        } else if (choice == 1) {
+            // Launch Customer GUI
+            CustomerClientGUI.main(new String[0]);
+        } else if (choice == 2) {
+            // Run Part 2 CLI Demo
+            new BankClient().runPart2Demo();
+        } else {
+            // Exit
+            System.exit(0);
+        }
     }
 }
