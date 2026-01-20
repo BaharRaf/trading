@@ -6,7 +6,11 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.NoResultException;
+import java.io.File;
+import net.froihofer.util.jboss.WildflyAuthDBHelper;
 
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -29,21 +33,53 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
   @EJB
   private TradingServiceAdapterBean tradingAdapter;
 
-  @Override
-  public long createCustomer(CustomerDTO customer) {
-    if (customer == null) throw new IllegalArgumentException("customer must not be null");
-    if (customer.getCustomerNumber() == null || customer.getCustomerNumber().isBlank())
-      throw new IllegalArgumentException("customerNumber must not be blank");
-    CustomerEntity entity = new CustomerEntity(
-            customer.getCustomerNumber(),
-            customer.getFirstName(),
-            customer.getLastName(),
-            customer.getAddress()
-    );
-    em.persist(entity);
-    em.flush();
-    return entity.getId();
-  }
+    @Override
+    public long createCustomer(CustomerDTO customer) {
+        if (customer == null) {
+            throw new IllegalArgumentException("customer must not be null");
+        }
+
+        if (customer.getCustomerNumber() == null || customer.getCustomerNumber().isBlank()) {
+            throw new IllegalArgumentException("customerNumber must not be blank");
+        }
+
+        // Username MUST match WildFly login principal (e.g. "customer")
+        String username = customer.getUsername();
+        if (username == null || username.isBlank()) {
+            // fallback behavior if UI/client did not supply username
+            username = "cust-" + customer.getCustomerNumber();
+        }
+
+        CustomerEntity entity = new CustomerEntity(
+                customer.getCustomerNumber(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getAddress()
+        );
+        entity.setUsername(username);
+
+        em.persist(entity);
+        em.flush();
+
+        // Optional: also create the corresponding WildFly application user (role = customer)
+        String initialPassword = customer.getInitialPassword();
+        if (initialPassword != null && !initialPassword.isBlank()) {
+            try {
+                File jbossHome = new File(System.getProperty("jboss.home.dir"));
+                new WildflyAuthDBHelper(jbossHome).addUser(username, initialPassword, new String[]{"customer"});
+            } catch (Exception e) {
+                // Fail fast: avoid DB-customer without WildFly login
+                throw new IllegalStateException(
+                        "Customer created in DB but WildFly user creation failed for username=" + username, e
+                );
+            }
+        }
+
+        return entity.getId();
+    }
+
+
+
 
   @Override
   public CustomerDTO findCustomerById(long customerId) {
@@ -265,7 +301,15 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     return banks.get(0);
   }
 
-  private CustomerDTO toDto(CustomerEntity c) {
-    return new CustomerDTO(c.getId(), c.getCustomerNumber(), c.getFirstName(), c.getLastName(), c.getAddress());
-  }
+    private CustomerDTO toDto(CustomerEntity c) {
+        return new CustomerDTO(
+                c.getId(),
+                c.getCustomerNumber(),
+                c.getFirstName(),
+                c.getLastName(),
+                c.getAddress(),
+                c.getUsername()
+        );
+    }
+
 }

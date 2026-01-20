@@ -2,6 +2,7 @@ D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\cli
 D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\BankServiceConnector.java
 D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\CustomerManagementPanel.java
 D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\EmployeeClientFrame.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\gui\ClientLauncher.java
 D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI.java
 D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI.java
 D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\LoginDialog.java

@@ -21,6 +21,7 @@ net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI$3.class
 net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI$7.class
 net\froihofer\dsfinance\bank\client\EmployeeClientFrame.class
 net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI$8.class
+net\froihofer\dsfinance\bank\client\gui\ClientLauncher.class
 net\froihofer\util\AuthCallbackHandler.class
 net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI$3.class
 net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI$5.class

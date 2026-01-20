@@ -101,7 +101,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>net.froihofer.dsfinance.bank.client.BankClient</mainClass>
+              <mainClass>net.froihofer.dsfinance.bank.client.gui.ClientLauncher</mainClass>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
