@@ -101,7 +101,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>net.froihofer.dsfinance.bank.client.gui.ClientLauncher</mainClass>
+              <mainClass>net.froihofer.dsfinance.bank.client.BankClient</mainClass>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
@@ -145,6 +145,27 @@
             <goals>
               <goal>wsdl2java</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>net.froihofer.dsfinance.bank.client.gui.EmployeeClientGUI</mainClass>
+                </transformer>
+              </transformers>
+              <finalName>trading-employee-gui</finalName>
+            </configuration>
           </execution>
         </executions>
       </plugin>
