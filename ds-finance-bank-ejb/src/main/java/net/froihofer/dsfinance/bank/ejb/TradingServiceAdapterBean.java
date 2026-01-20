@@ -18,10 +18,19 @@ import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import net.froihofer.dsfinance.bank.entity.StockEntity;
+
 
 @Stateless
 @RolesAllowed({"employee", "customer"})
 public class TradingServiceAdapterBean {
+
+    @PersistenceContext
+    private EntityManager em;
+
 
     private static final Logger LOG = LoggerFactory.getLogger(TradingServiceAdapterBean.class);
 
@@ -51,7 +60,12 @@ public class TradingServiceAdapterBean {
             for (PublicStockQuote wsQuote : quotes) {
                 out.add(toDto(wsQuote));
             }
+
+            // Cache symbol -> companyName in DB (best effort)
+            cacheStocks(out);
+
             return out;
+
 
         } catch (TradingWSException_Exception e) {
             LOG.warn("TradingService returned a domain error for query='{}': {}", q, e.getMessage());
@@ -61,6 +75,46 @@ public class TradingServiceAdapterBean {
             throw new RuntimeException("TradingService call failed: " + e.getMessage(), e);
         }
     }
+
+    private void cacheStocks(List<StockQuoteDTO> quotes) {
+        if (quotes == null || quotes.isEmpty()) return;
+
+        for (StockQuoteDTO q : quotes) {
+            if (q == null) continue;
+
+            String symbol = normalizeSymbol(q.getSymbol());
+            if (symbol == null) continue;
+
+            String companyName = (q.getCompanyName() != null) ? q.getCompanyName().trim() : null;
+
+            try {
+                StockEntity existing = em.createQuery(
+                                "SELECT s FROM StockEntity s WHERE s.symbol = :symbol", StockEntity.class)
+                        .setParameter("symbol", symbol)
+                        .getSingleResult();
+
+                // Update companyName if we have a better one
+                if (companyName != null && !companyName.isBlank()) {
+                    if (existing.getCompanyName() == null || existing.getCompanyName().isBlank()) {
+                        existing.setCompanyName(companyName);
+                    }
+                }
+            } catch (NoResultException e) {
+                // create new
+                StockEntity stock = new StockEntity(symbol, companyName);
+                em.persist(stock);
+            } catch (Exception ignored) {
+                // Best-effort only: never break the WS call due to caching issues
+            }
+        }
+    }
+
+    private String normalizeSymbol(String symbol) {
+        if (symbol == null) return null;
+        String s = symbol.trim();
+        return s.isEmpty() ? null : s.toUpperCase(java.util.Locale.ROOT);
+    }
+
 
     private TradingWebService getPort() {
         TradingWebService p = port;

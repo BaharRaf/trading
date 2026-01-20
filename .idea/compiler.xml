@@ -16,7 +16,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="ds-finance-bank-client" options="--add-modules java.naming,java.desktop" />
+      <module name="ds-finance-bank-client" options="--add-modules java.desktop,java.naming" />
     </option>
   </component>
 </project>

@@ -8,6 +8,8 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.NoResultException;
 import java.io.File;
 import net.froihofer.util.jboss.WildflyAuthDBHelper;
+import java.util.Locale;
+
 
 
 import java.io.IOException;
@@ -106,7 +108,8 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
 
     // Get current stock price
-    BigDecimal pricePerShare = getCurrentPrice(symbol);
+    String sym = normalizeSymbol(symbol);
+    BigDecimal pricePerShare = getCurrentPriceBySymbol(sym);
     BigDecimal totalCost = pricePerShare.multiply(BigDecimal.valueOf(quantity));
 
     // Find customer and ensure depot exists
@@ -127,7 +130,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     }
 
     // Find or create stock entity
-    StockEntity stock = findOrCreateStock(symbol);
+    StockEntity stock = findOrCreateStock(sym);
 
     // Update depot position
     DepotPositionEntity position = findOrCreatePosition(customer.getDepot(), stock);
@@ -147,7 +150,8 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     // Update bank volume
     bank.setAvailableVolume(bank.getAvailableVolume().subtract(totalCost));
 
-    return pricePerShare;
+      em.flush();
+      return pricePerShare;
   }
 
   @Override
@@ -159,7 +163,8 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
       throw new IllegalArgumentException("Customer not found or has no portfolio");
     }
 
-    StockEntity stock = findStockBySymbol(symbol);
+    String sym = normalizeSymbol(symbol);
+    StockEntity stock = findStockBySymbol(sym);
     if (stock == null) throw new IllegalArgumentException("Stock not found");
 
     DepotPositionEntity position = findPosition(customer.getDepot(), stock);
@@ -167,7 +172,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
       throw new IllegalArgumentException("Insufficient shares to sell");
     }
 
-    BigDecimal pricePerShare = getCurrentPrice(symbol);
+    BigDecimal pricePerShare = getCurrentPriceBySymbol(sym);
     BigDecimal totalRevenue = pricePerShare.multiply(BigDecimal.valueOf(quantity));
 
     // Update position
@@ -183,6 +188,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     BankEntity bank = getBankEntity();
     bank.setAvailableVolume(bank.getAvailableVolume().add(totalRevenue));
 
+    em.flush();
     return pricePerShare;
   }
 
@@ -197,7 +203,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     BigDecimal totalValue = BigDecimal.ZERO;
 
     for (DepotPositionEntity pos : customer.getDepot().getPositions()) {
-      BigDecimal currentPrice = getCurrentPrice(pos.getStock().getSymbol());
+      BigDecimal currentPrice = getCurrentPriceBySymbol(pos.getStock().getSymbol());
       BigDecimal posValue = currentPrice.multiply(BigDecimal.valueOf(pos.getQuantity()));
 
       positions.add(new PortfolioPositionDTO(
@@ -232,39 +238,121 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     throw new IllegalArgumentException("Stock not found: " + symbol);
   }
 
-  private StockEntity findOrCreateStock(String symbol) {
-    try {
-      return em.createQuery("SELECT s FROM StockEntity s WHERE s.symbol = :symbol", StockEntity.class)
-              .setParameter("symbol", symbol)
-              .getSingleResult();
-    } catch (NoResultException e) {
-      // Get company name from trading service
-      String companyName = symbol; // Default
-      List<StockQuoteDTO> quotes = tradingAdapter.findStockQuotesByCompanyName(symbol);
-      for (StockQuoteDTO quote : quotes) {
-        if (quote.getSymbol().equalsIgnoreCase(symbol)) {
-          companyName = quote.getCompanyName();
-          break;
+    private String normalizeSymbol(String symbol) {
+        if (symbol == null) return null;
+        String s = symbol.trim();
+        return s.isEmpty() ? null : s.toUpperCase(Locale.ROOT);
+    }
+
+    private StockQuoteDTO findQuoteBySymbol(String symbol) {
+        String sym = normalizeSymbol(symbol);
+        if (sym == null) throw new IllegalArgumentException("Symbol must not be blank");
+
+        // The course WS is "find by companyName" but in practice it also returns results for symbol-like queries.
+        List<StockQuoteDTO> quotes = tradingAdapter.findStockQuotesByCompanyName(sym);
+        if (quotes != null) {
+            for (StockQuoteDTO q : quotes) {
+                if (q != null && q.getSymbol() != null) {
+                    String qs = normalizeSymbol(q.getSymbol());
+                    if (sym.equals(qs)) return q;
+                }
+            }
         }
-      }
 
-      StockEntity stock = new StockEntity(symbol, companyName);
-      em.persist(stock);
-      return stock;
+        // Defensive fallback: sometimes the service returns 1 "best match" even if not exact
+        if (quotes != null && quotes.size() == 1 && quotes.get(0) != null && quotes.get(0).getLastTradePrice() != null) {
+            return quotes.get(0);
+        }
+
+        throw new IllegalArgumentException("Stock not found: " + sym);
     }
-  }
 
-  private StockEntity findStockBySymbol(String symbol) {
-    try {
-      return em.createQuery("SELECT s FROM StockEntity s WHERE s.symbol = :symbol", StockEntity.class)
-              .setParameter("symbol", symbol)
-              .getSingleResult();
-    } catch (NoResultException e) {
-      return null;
+    private BigDecimal getCurrentPriceBySymbol(String symbol) {
+        StockQuoteDTO q = findQuoteBySymbolWithFallback(symbol);
+        if (q.getLastTradePrice() == null) {
+            throw new IllegalStateException("TradingService returned no price for: " + normalizeSymbol(symbol));
+        }
+        return q.getLastTradePrice();
     }
-  }
 
-  private DepotPositionEntity findOrCreatePosition(DepotEntity depot, StockEntity stock) {
+
+    private StockQuoteDTO findQuoteBySymbolWithFallback(String symbol) {
+        String sym = normalizeSymbol(symbol);
+        if (sym == null) throw new IllegalArgumentException("Symbol must not be blank");
+
+        // 1) Try direct (works if WS happens to accept symbol queries)
+        try {
+            return findQuoteBySymbol(sym);
+        } catch (RuntimeException firstFail) {
+            // 2) Fallback: use cached companyName from DB
+            StockEntity cached = findStockBySymbol(sym);
+            if (cached != null && cached.getCompanyName() != null && !cached.getCompanyName().isBlank()) {
+                List<StockQuoteDTO> quotes = tradingAdapter.findStockQuotesByCompanyName(cached.getCompanyName());
+                if (quotes != null) {
+                    for (StockQuoteDTO q : quotes) {
+                        if (q != null && q.getSymbol() != null && sym.equals(normalizeSymbol(q.getSymbol()))) {
+                            return q;
+                        }
+                    }
+                    // If the service returns exactly one entry, accept it as best match
+                    if (quotes.size() == 1 && quotes.get(0) != null && quotes.get(0).getLastTradePrice() != null) {
+                        return quotes.get(0);
+                    }
+                }
+            }
+
+            // No fallback possible -> rethrow with helpful message
+            throw new IllegalArgumentException(
+                    "Stock not found by symbol '" + sym + "'. Hint: search the stock by company name first (caches symbol mapping).",
+                    firstFail
+            );
+        }
+    }
+
+
+    private StockEntity findOrCreateStock(String symbol) {
+        symbol = normalizeSymbol(symbol);
+
+        try {
+            return em.createQuery("SELECT s FROM StockEntity s WHERE s.symbol = :symbol", StockEntity.class)
+                    .setParameter("symbol", symbol)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+
+            // Fallback: use symbol if WS lookup fails
+            String companyName = symbol;
+
+            try {
+                StockQuoteDTO q = findQuoteBySymbol(symbol);
+                if (q.getCompanyName() != null && !q.getCompanyName().isBlank()) {
+                    companyName = q.getCompanyName();
+                }
+            } catch (Exception ignored) {
+                // keep fallback
+            }
+
+            StockEntity stock = new StockEntity(symbol, companyName);
+            em.persist(stock);
+            return stock;
+        }
+    }
+
+
+    private StockEntity findStockBySymbol(String symbol) {
+        String sym = normalizeSymbol(symbol);
+        if (sym == null) return null;
+
+        try {
+            return em.createQuery("SELECT s FROM StockEntity s WHERE s.symbol = :symbol", StockEntity.class)
+                    .setParameter("symbol", sym)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+
+    private DepotPositionEntity findOrCreatePosition(DepotEntity depot, StockEntity stock) {
     DepotPositionEntity position = findPosition(depot, stock);
     if (position == null) {
       position = new DepotPositionEntity();

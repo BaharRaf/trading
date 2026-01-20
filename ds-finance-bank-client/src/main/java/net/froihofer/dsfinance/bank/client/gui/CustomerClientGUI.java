@@ -454,6 +454,9 @@ public class CustomerClientGUI extends JFrame {
                     true
             );
 
+            // Force authz check early (so wrong role/password fails before GUI opens)
+            service.whoAmI();
+
             SwingUtilities.invokeLater(() -> {
                 CustomerClientGUI gui = new CustomerClientGUI(service, username);
                 gui.setVisible(true);
