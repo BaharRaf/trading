@@ -8,9 +8,9 @@ import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for sell complex type.
+ * <p>Java-Klasse für sell complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>Das folgende Schemafragment gibt den erwarteten Content an, der in dieser Klasse enthalten ist.
  * 
  * <pre>
  * &lt;complexType name="sell"&gt;
@@ -39,7 +39,7 @@ public class Sell {
     protected int shares;
 
     /**
-     * Gets the value of the symbol property.
+     * Ruft den Wert der symbol-Eigenschaft ab.
      * 
      * @return
      *     possible object is
@@ -51,7 +51,7 @@ public class Sell {
     }
 
     /**
-     * Sets the value of the symbol property.
+     * Legt den Wert der symbol-Eigenschaft fest.
      * 
      * @param value
      *     allowed object is
@@ -63,7 +63,7 @@ public class Sell {
     }
 
     /**
-     * Gets the value of the shares property.
+     * Ruft den Wert der shares-Eigenschaft ab.
      * 
      */
     public int getShares() {
@@ -71,7 +71,7 @@ public class Sell {
     }
 
     /**
-     * Sets the value of the shares property.
+     * Legt den Wert der shares-Eigenschaft fest.
      * 
      */
     public void setShares(int value) {

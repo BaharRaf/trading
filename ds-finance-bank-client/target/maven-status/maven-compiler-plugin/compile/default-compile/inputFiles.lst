@@ -1,5 +1,10 @@
-/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-client/src/main/java/net/froihofer/dsfinance/bank/client/BankClient.java
-/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-client/src/main/java/net/froihofer/dsfinance/bank/client/gui/CustomerClientGUI.java
-/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-client/src/main/java/net/froihofer/dsfinance/bank/client/gui/EmployeeClientGUI.java
-/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-client/src/main/java/net/froihofer/util/AuthCallbackHandler.java
-/Users/bahar/Downloads/ds-finance-bank_csdc26vz_04/ds-finance-bank-client/src/main/java/net/froihofer/util/WildflyJndiLookupHelper.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\BankClient.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\BankServiceConnector.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\CustomerManagementPanel.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\EmployeeClientFrame.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\gui\ClientLauncher.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\dsfinance\bank\client\LoginDialog.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\util\AuthCallbackHandler.java
+D:\trading\ds-finance-bank-client\src\main\java\net\froihofer\util\WildflyJndiLookupHelper.java

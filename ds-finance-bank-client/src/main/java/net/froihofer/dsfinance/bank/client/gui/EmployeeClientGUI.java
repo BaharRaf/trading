@@ -34,6 +34,9 @@ public class EmployeeClientGUI extends JFrame {
     private JTextField txtSearchFirstName, txtSearchLastName, txtSearchById;
     private JTable customerTable;
     private DefaultTableModel customerTableModel;
+    private JTextField txtLoginUsername;
+    private JPasswordField txtInitialPassword;
+
 
     // Trading Tab
     private JTextField txtTradeCustomerId, txtTradeSymbol, txtTradeQuantity;
