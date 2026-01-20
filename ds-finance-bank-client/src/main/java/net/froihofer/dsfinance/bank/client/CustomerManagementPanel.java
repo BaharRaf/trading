@@ -121,19 +121,25 @@ public class CustomerManagementPanel extends JPanel {
                 if (loginUser.isEmpty()) {
                     throw new IllegalArgumentException("Login Username (WildFly) is required");
                 }
+                if (loginPass.isEmpty()) {
+                    throw new IllegalArgumentException("Initial Password (WildFly) is required for customer authentication");
+                }
 
                 CustomerDTO customer = new CustomerDTO();
                 customer.setFirstName(firstName);
                 customer.setLastName(lastName);
                 customer.setAddress(address);
 
+                // CRITICAL FIX: Generate customerNumber (required by EJB)
+                // Using timestamp + username to ensure uniqueness
+                String customerNumber = "CUST-" + System.currentTimeMillis() + "-" + loginUser;
+                customer.setCustomerNumber(customerNumber);
+
                 // Critical: DB mapping must match principal name
                 customer.setUsername(loginUser);
 
-                // Optional: triggers server-side WildFly user creation (if implemented)
-                if (!loginPass.isBlank()) {
-                    customer.setInitialPassword(loginPass);
-                }
+                // Set password to trigger server-side WildFly user creation
+                customer.setInitialPassword(loginPass);
 
                 return service.createCustomer(customer);
             }
@@ -143,7 +149,10 @@ public class CustomerManagementPanel extends JPanel {
                 try {
                     Long customerId = get();
                     JOptionPane.showMessageDialog(CustomerManagementPanel.this,
-                            "Customer created successfully! ID: " + customerId,
+                            "Customer created successfully!\nID: " + customerId + "\n\n" +
+                            "You can now log in to Customer GUI with:\n" +
+                            "Username: " + txtLoginUsername.getText().trim() + "\n" +
+                            "Password: (the one you entered)",
                             "Success", JOptionPane.INFORMATION_MESSAGE);
 
                     firstNameField.setText("");
