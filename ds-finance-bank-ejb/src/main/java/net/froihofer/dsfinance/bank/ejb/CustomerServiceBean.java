@@ -120,12 +120,22 @@ public class CustomerServiceBean implements CustomerServiceLocal {
 
     @Override
     public List<CustomerDTO> searchByName(String firstName, String lastName) {
+        // FIXED: Add wildcard support for partial matching
+        // Handle null/empty strings - treat as wildcard
+        String firstNamePattern = (firstName == null || firstName.isBlank()) 
+            ? "%" 
+            : "%" + firstName.trim() + "%";
+        
+        String lastNamePattern = (lastName == null || lastName.isBlank()) 
+            ? "%" 
+            : "%" + lastName.trim() + "%";
+        
         List<CustomerEntity> results = em.createNamedQuery(
                 "Customer.findByName", 
                 CustomerEntity.class
             )
-            .setParameter("first", firstName)
-            .setParameter("last", lastName)
+            .setParameter("first", firstNamePattern)
+            .setParameter("last", lastNamePattern)
             .getResultList();
         
         return results.stream()
