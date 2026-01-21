@@ -2,13 +2,13 @@ package net.froihofer.dsfinance.bank.api;
 
 import jakarta.ejb.Local;
 import net.froihofer.dsfinance.bank.dto.CustomerDTO;
-import net.froihofer.dsfinance.bank.entity.CustomerEntity;
 
 import java.util.List;
 
 /**
  * Local service interface for customer management operations.
  * Used internally by other EJBs.
+ * NOTE: This interface uses only DTOs, not entities, to avoid module dependencies.
  */
 @Local
 public interface CustomerServiceLocal {
@@ -23,23 +23,23 @@ public interface CustomerServiceLocal {
     /**
      * Finds a customer by ID.
      * @param id Customer ID
-     * @return Customer entity or null if not found
+     * @return Customer DTO or null if not found
      */
-    CustomerEntity findById(long id);
+    CustomerDTO findById(long id);
     
     /**
      * Finds a customer by customer number.
      * @param customerNumber Unique customer number
-     * @return Customer entity or null if not found
+     * @return Customer DTO or null if not found
      */
-    CustomerEntity findByCustomerNumber(String customerNumber);
+    CustomerDTO findByCustomerNumber(String customerNumber);
     
     /**
      * Finds a customer by username (for authentication).
      * @param username WildFly username
-     * @return Customer entity or null if not found
+     * @return Customer DTO or null if not found
      */
-    CustomerEntity findByUsername(String username);
+    CustomerDTO findByUsername(String username);
     
     /**
      * Searches customers by name (partial match).
@@ -51,7 +51,7 @@ public interface CustomerServiceLocal {
     
     /**
      * Updates an existing customer.
-     * @param customer Customer entity with updated data
+     * @param customer Customer DTO with updated data
      */
-    void updateCustomer(CustomerEntity customer);
+    void updateCustomer(CustomerDTO customer);
 }
