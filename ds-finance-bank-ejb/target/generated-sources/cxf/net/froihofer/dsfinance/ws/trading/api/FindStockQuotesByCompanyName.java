@@ -8,9 +8,9 @@ import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java-Klasse für findStockQuotesByCompanyName complex type.
+ * <p>Java class for findStockQuotesByCompanyName complex type.
  * 
- * <p>Das folgende Schemafragment gibt den erwarteten Content an, der in dieser Klasse enthalten ist.
+ * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="findStockQuotesByCompanyName"&gt;
@@ -36,7 +36,7 @@ public class FindStockQuotesByCompanyName {
     protected String partOfCompanyName;
 
     /**
-     * Ruft den Wert der partOfCompanyName-Eigenschaft ab.
+     * Gets the value of the partOfCompanyName property.
      * 
      * @return
      *     possible object is
@@ -48,7 +48,7 @@ public class FindStockQuotesByCompanyName {
     }
 
     /**
-     * Legt den Wert der partOfCompanyName-Eigenschaft fest.
+     * Sets the value of the partOfCompanyName property.
      * 
      * @param value
      *     allowed object is

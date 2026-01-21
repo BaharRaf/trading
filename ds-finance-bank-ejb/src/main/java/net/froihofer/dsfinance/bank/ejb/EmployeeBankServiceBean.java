@@ -8,22 +8,16 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.NoResultException;
-import java.io.File;
-import net.froihofer.util.jboss.WildflyAuthDBHelper;
 import java.util.Locale;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import net.froihofer.dsfinance.bank.api.CustomerServiceLocal;
 import net.froihofer.dsfinance.bank.api.DepotServiceLocal;
 import net.froihofer.dsfinance.bank.api.EmployeeBankService;
 import net.froihofer.dsfinance.bank.dto.CustomerDTO;
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
-import net.froihofer.dsfinance.bank.dto.PortfolioPositionDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 import net.froihofer.dsfinance.bank.entity.*;
 
@@ -35,23 +29,20 @@ import net.froihofer.dsfinance.bank.entity.*;
 @RolesAllowed("employee")
 public class EmployeeBankServiceBean implements EmployeeBankService {
 
-  @PersistenceContext
-  private EntityManager em;
+    @PersistenceContext
+    private EntityManager em;
 
-  @EJB
-  private TradingServiceAdapterBean tradingAdapter;
+    @EJB
+    private TradingServiceAdapterBean tradingAdapter;
 
-  @EJB
-  private CustomerServiceLocal customerService;
+    @EJB
+    private CustomerServiceLocal customerService;
 
-  @EJB
-  private CustomerServiceBean customerServiceBean;
+    @EJB
+    private DepotServiceLocal depotService;
 
-  @EJB
-  private DepotServiceLocal depotService;
-
-  @Resource
-  private SessionContext sessionContext;
+    @Resource
+    private SessionContext sessionContext;
 
     @Override
     public long createCustomer(CustomerDTO customer) {
@@ -138,7 +129,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
      * Validates that the caller has access to the customer account.
      * Employees can access any customer.
      * Customers can only access their own account.
-     * 
+     *
      * @param customerId Customer ID being accessed
      * @throws SecurityException if customer tries to access another account
      */
@@ -154,7 +145,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
 
             if (authenticatedCustomer.getId() != customerId) {
                 throw new SecurityException(
-                    "Access denied: Customer can only access own account"
+                        "Access denied: Customer can only access own account"
                 );
             }
         }
@@ -162,16 +153,6 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     }
 
     // Helper methods
-    private BigDecimal getCurrentPrice(String symbol) {
-        List<StockQuoteDTO> quotes = tradingAdapter.findStockQuotesByCompanyName(symbol);
-        for (StockQuoteDTO quote : quotes) {
-            if (quote.getSymbol().equalsIgnoreCase(symbol)) {
-                return quote.getLastTradePrice();
-            }
-        }
-        throw new IllegalArgumentException("Stock not found: " + symbol);
-    }
-
     private String normalizeSymbol(String symbol) {
         if (symbol == null) return null;
         String s = symbol.trim();

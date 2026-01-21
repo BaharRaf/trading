@@ -7,9 +7,9 @@ import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java-Klasse für TradingWSException complex type.
+ * <p>Java class for TradingWSException complex type.
  * 
- * <p>Das folgende Schemafragment gibt den erwarteten Content an, der in dieser Klasse enthalten ist.
+ * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="TradingWSException"&gt;
@@ -34,7 +34,7 @@ public class TradingWSException {
     protected String message;
 
     /**
-     * Ruft den Wert der message-Eigenschaft ab.
+     * Gets the value of the message property.
      * 
      * @return
      *     possible object is
@@ -46,7 +46,7 @@ public class TradingWSException {
     }
 
     /**
-     * Legt den Wert der message-Eigenschaft fest.
+     * Sets the value of the message property.
      * 
      * @param value
      *     allowed object is

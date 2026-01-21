@@ -32,6 +32,10 @@ public class CustomerDTO implements Serializable {
         this.username = username;
     }
 
+    // Alias methods for getId/setId (used by service beans)
+    public Long getId() { return customerId; }
+    public void setId(Long id) { this.customerId = id; }
+
     public Long getCustomerId() { return customerId; }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
 

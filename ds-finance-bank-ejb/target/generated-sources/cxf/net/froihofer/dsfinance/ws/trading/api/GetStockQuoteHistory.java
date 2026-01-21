@@ -8,9 +8,9 @@ import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java-Klasse für getStockQuoteHistory complex type.
+ * <p>Java class for getStockQuoteHistory complex type.
  * 
- * <p>Das folgende Schemafragment gibt den erwarteten Content an, der in dieser Klasse enthalten ist.
+ * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="getStockQuoteHistory"&gt;
@@ -36,7 +36,7 @@ public class GetStockQuoteHistory {
     protected String symbol;
 
     /**
-     * Ruft den Wert der symbol-Eigenschaft ab.
+     * Gets the value of the symbol property.
      * 
      * @return
      *     possible object is
@@ -48,7 +48,7 @@ public class GetStockQuoteHistory {
     }
 
     /**
-     * Legt den Wert der symbol-Eigenschaft fest.
+     * Sets the value of the symbol property.
      * 
      * @param value
      *     allowed object is

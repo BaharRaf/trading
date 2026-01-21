@@ -26,9 +26,6 @@ public class DepotServiceBean implements DepotServiceLocal {
     private EntityManager em;
 
     @EJB
-    private CustomerServiceBean customerService;
-
-    @EJB
     private TradingServiceAdapterBean tradingAdapter;
 
     @Override
@@ -51,7 +48,7 @@ public class DepotServiceBean implements DepotServiceLocal {
 
         // Find existing position or create new one
         DepotPositionEntity position = findPosition(depot, stock);
-        
+
         if (position == null) {
             // Create new position
             position = new DepotPositionEntity();
@@ -75,7 +72,7 @@ public class DepotServiceBean implements DepotServiceLocal {
             throw new IllegalArgumentException("Quantity must be positive");
         }
 
-        CustomerEntity customer = customerService.getEntityById(customerId);
+        CustomerEntity customer = findCustomerEntityById(customerId);
         if (customer == null || customer.getDepot() == null) {
             throw new IllegalArgumentException("Customer has no portfolio");
         }
@@ -94,7 +91,7 @@ public class DepotServiceBean implements DepotServiceLocal {
         int currentQty = position.getQuantity() != null ? position.getQuantity() : 0;
         if (currentQty < quantity) {
             throw new IllegalArgumentException(
-                "Insufficient shares. Available: " + currentQty + ", Requested: " + quantity
+                    "Insufficient shares. Available: " + currentQty + ", Requested: " + quantity
             );
         }
 
@@ -112,7 +109,7 @@ public class DepotServiceBean implements DepotServiceLocal {
 
     @Override
     public List<PortfolioPositionDTO> getDepotPositions(long customerId) {
-        CustomerEntity customer = customerService.getEntityById(customerId);
+        CustomerEntity customer = findCustomerEntityById(customerId);
         if (customer == null || customer.getDepot() == null) {
             return new ArrayList<>();
         }
@@ -126,14 +123,14 @@ public class DepotServiceBean implements DepotServiceLocal {
             BigDecimal profitLoss = totalValue.subtract(purchaseValue);
 
             PortfolioPositionDTO dto = new PortfolioPositionDTO(
-                pos.getStock().getSymbol(),
-                pos.getStock().getCompanyName(),
-                pos.getQuantity(),
-                pos.getAveragePurchasePrice(),
-                currentPrice,
-                totalValue,
-                purchaseValue,
-                profitLoss
+                    pos.getStock().getSymbol(),
+                    pos.getStock().getCompanyName(),
+                    pos.getQuantity(),
+                    pos.getAveragePurchasePrice(),
+                    currentPrice,
+                    totalValue,
+                    purchaseValue,
+                    profitLoss
             );
 
             positions.add(dto);
@@ -145,14 +142,14 @@ public class DepotServiceBean implements DepotServiceLocal {
     @Override
     public BigDecimal calculateTotalValue(long customerId) {
         List<PortfolioPositionDTO> positions = getDepotPositions(customerId);
-        
+
         BigDecimal totalValue = BigDecimal.ZERO;
         for (PortfolioPositionDTO pos : positions) {
             if (pos.getTotalValue() != null) {
                 totalValue = totalValue.add(pos.getTotalValue());
             }
         }
-        
+
         return totalValue;
     }
 
@@ -160,18 +157,26 @@ public class DepotServiceBean implements DepotServiceLocal {
     public PortfolioDTO getCustomerPortfolio(long customerId) {
         List<PortfolioPositionDTO> positions = getDepotPositions(customerId);
         BigDecimal totalValue = calculateTotalValue(customerId);
-        
+
         return new PortfolioDTO(customerId, positions, totalValue);
     }
 
     // Internal helper methods
-    
+
+    /**
+     * Find customer entity directly using EntityManager.
+     * This avoids circular EJB dependencies.
+     */
+    private CustomerEntity findCustomerEntityById(long customerId) {
+        return em.find(CustomerEntity.class, customerId);
+    }
+
     /**
      * Internal method to get or create depot entity.
      * Not exposed in interface to avoid entity dependencies.
      */
     private DepotEntity getOrCreateDepotEntity(long customerId) {
-        CustomerEntity customer = customerService.getEntityById(customerId);
+        CustomerEntity customer = findCustomerEntityById(customerId);
         if (customer == null) {
             throw new IllegalArgumentException("Customer not found: " + customerId);
         }
@@ -211,13 +216,13 @@ public class DepotServiceBean implements DepotServiceLocal {
                     }
                 }
             }
-            
+
             // Fallback: try direct symbol search
             var quotes = tradingAdapter.findStockQuotesByCompanyName(symbol);
             if (quotes != null && !quotes.isEmpty() && quotes.get(0).getLastTradePrice() != null) {
                 return quotes.get(0).getLastTradePrice();
             }
-            
+
             // Default fallback price
             return BigDecimal.ZERO;
         } catch (Exception e) {
@@ -231,15 +236,15 @@ public class DepotServiceBean implements DepotServiceLocal {
 
         try {
             return em.createQuery(
-                    "SELECT s FROM StockEntity s WHERE s.symbol = :symbol", 
-                    StockEntity.class
-                )
-                .setParameter("symbol", symbol)
-                .getSingleResult();
+                            "SELECT s FROM StockEntity s WHERE s.symbol = :symbol",
+                            StockEntity.class
+                    )
+                    .setParameter("symbol", symbol)
+                    .getSingleResult();
         } catch (NoResultException e) {
             // Create new stock
             String companyName = symbol;
-            
+
             try {
                 var quotes = tradingAdapter.findStockQuotesByCompanyName(symbol);
                 if (quotes != null && !quotes.isEmpty() && quotes.get(0).getCompanyName() != null) {
@@ -261,11 +266,11 @@ public class DepotServiceBean implements DepotServiceLocal {
 
         try {
             return em.createQuery(
-                    "SELECT s FROM StockEntity s WHERE s.symbol = :symbol", 
-                    StockEntity.class
-                )
-                .setParameter("symbol", sym)
-                .getSingleResult();
+                            "SELECT s FROM StockEntity s WHERE s.symbol = :symbol",
+                            StockEntity.class
+                    )
+                    .setParameter("symbol", sym)
+                    .getSingleResult();
         } catch (NoResultException e) {
             return null;
         }
@@ -275,13 +280,13 @@ public class DepotServiceBean implements DepotServiceLocal {
         if (depot == null || depot.getPositions() == null || stock == null) {
             return null;
         }
-        
+
         for (DepotPositionEntity pos : depot.getPositions()) {
             if (pos.getStock() != null && pos.getStock().getId().equals(stock.getId())) {
                 return pos;
             }
         }
-        
+
         return null;
     }
 }
