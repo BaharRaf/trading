@@ -1,12 +1,11 @@
 package at.ac.csw.dke.bank.ejb;
-
-import at.ac.csw.dke.bank.service.AuthenticationCheckService;
 import jakarta.annotation.security.DeclareRoles;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 
 import jakarta.annotation.Resource;
 import jakarta.ejb.SessionContext;
+import net.froihofer.dsfinance.bank.service.AuthenticationCheckService;
 
 /**
  * EJB implementation for authentication checking.

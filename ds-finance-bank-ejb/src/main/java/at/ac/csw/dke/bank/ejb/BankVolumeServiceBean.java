@@ -1,11 +1,11 @@
 package at.ac.csw.dke.bank.ejb;
 
-import at.ac.csw.dke.bank.service.BankVolumeService;
 import jakarta.annotation.Resource;
 import jakarta.annotation.security.DeclareRoles;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateless;
+import net.froihofer.dsfinance.bank.service.BankVolumeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

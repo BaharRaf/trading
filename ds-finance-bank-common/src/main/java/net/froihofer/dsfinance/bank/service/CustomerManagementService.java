@@ -1,8 +1,8 @@
-package at.ac.csw.dke.bank.service;
+package net.froihofer.dsfinance.bank.service;
 
-import at.ac.csw.dke.bank.dto.CustomerDTO;
-import at.ac.csw.dke.bank.dto.PersonDTO;
 import jakarta.ejb.Remote;
+import net.froihofer.dsfinance.bank.dto.CustomerDTO;
+import net.froihofer.dsfinance.bank.dto.PersonDTO;
 
 import java.util.List;
 

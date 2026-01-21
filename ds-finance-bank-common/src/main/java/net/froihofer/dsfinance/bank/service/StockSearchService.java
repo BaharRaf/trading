@@ -1,7 +1,6 @@
-package at.ac.csw.dke.bank.service;
-
-import at.ac.csw.dke.bank.dto.StockDTO;
+package net.froihofer.dsfinance.bank.service;
 import jakarta.ejb.Remote;
+import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +23,7 @@ public interface StockSearchService {
      * @return List of matching stocks, empty if none found
      * @throws IllegalArgumentException if query is null or empty
      */
-    List<StockDTO> findStocksByCompanyName(String query, int maxResults);
+    List<StockQuoteDTO> findStocksByCompanyName(String query, int maxResults);
     
     /**
      * Finds a stock by its exact symbol (ticker).
@@ -33,7 +32,7 @@ public interface StockSearchService {
      * @return Optional containing the stock if found, empty otherwise
      * @throws IllegalArgumentException if symbol is null or empty
      */
-    Optional<StockDTO> findStockBySymbol(String symbol);
+    Optional<StockQuoteDTO> findStockBySymbol(String symbol);
     
     /**
      * Gets current market data for a specific stock.
@@ -42,5 +41,5 @@ public interface StockSearchService {
      * @param symbol Stock symbol
      * @return Optional containing current stock data, empty if not found
      */
-    Optional<StockDTO> getCurrentStockQuote(String symbol);
+    Optional<StockQuoteDTO> getCurrentStockQuote(String symbol);
 }

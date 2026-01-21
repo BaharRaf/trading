@@ -1,12 +1,12 @@
 package at.ac.csw.dke.bank.ejb;
 
-import at.ac.csw.dke.bank.dto.StockDTO;
-import at.ac.csw.dke.bank.service.StockSearchService;
 import jakarta.annotation.Resource;
 import jakarta.annotation.security.DeclareRoles;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateless;
+import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
+import net.froihofer.dsfinance.bank.service.StockSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class StockSearchServiceBean implements StockSearchService {
     
     @Override
     @RolesAllowed({"employee", "customer"})
-    public List<StockDTO> findStocksByCompanyName(String query, int maxResults) {
+    public List<StockQuoteDTO> findStocksByCompanyName(String query, int maxResults) {
         String username = sessionContext.getCallerPrincipal().getName();
         logger.debug("User '{}' searching for stocks: {}", username, query);
         
@@ -44,7 +44,7 @@ public class StockSearchServiceBean implements StockSearchService {
     
     @Override
     @RolesAllowed({"employee", "customer"})
-    public Optional<StockDTO> findStockBySymbol(String symbol) {
+    public Optional<StockQuoteDTO> findStockBySymbol(String symbol) {
         String username = sessionContext.getCallerPrincipal().getName();
         logger.debug("User '{}' searching for stock symbol: {}", username, symbol);
         
@@ -60,7 +60,7 @@ public class StockSearchServiceBean implements StockSearchService {
     
     @Override
     @RolesAllowed({"employee", "customer"})
-    public Optional<StockDTO> getCurrentStockQuote(String symbol) {
+    public Optional<StockQuoteDTO> getCurrentStockQuote(String symbol) {
         String username = sessionContext.getCallerPrincipal().getName();
         logger.debug("User '{}' getting quote for: {}", username, symbol);
         

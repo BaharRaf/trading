@@ -1,7 +1,6 @@
-package at.ac.csw.dke.bank.service;
-
-import at.ac.csw.dke.bank.dto.PortfolioDTO;
+package net.froihofer.dsfinance.bank.service;
 import jakarta.ejb.Remote;
+import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 
 /**
  * Remote interface for portfolio viewing operations.

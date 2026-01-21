@@ -1,7 +1,9 @@
-package at.ac.csw.dke.bank.service;
+package net.froihofer.dsfinance.bank.service;
+import net.froihofer.dsfinance.bank.exception.InsufficientFundsException;
+import net.froihofer.dsfinance.bank.exception.InsufficientSharesException;
 
-import at.ac.csw.dke.bank.exception.InsufficientFundsException;
-import at.ac.csw.dke.bank.exception.InsufficientSharesException;
+import net.froihofer.dsfinance.bank.exception.InsufficientFundsException;
+import java.math.BigDecimal;
 import jakarta.ejb.Remote;
 
 import java.math.BigDecimal;

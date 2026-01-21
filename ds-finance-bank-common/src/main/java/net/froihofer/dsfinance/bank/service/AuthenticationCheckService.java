@@ -1,4 +1,4 @@
-package at.ac.csw.dke.bank.service;
+package net.froihofer.dsfinance.bank.service;
 
 import jakarta.ejb.Remote;
 

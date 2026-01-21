@@ -1,4 +1,4 @@
-package at.ac.csw.dke.bank.exception;
+package net.froihofer.dsfinance.bank.exception;
 
 /**
  * Exception thrown when a customer doesn't own enough shares
