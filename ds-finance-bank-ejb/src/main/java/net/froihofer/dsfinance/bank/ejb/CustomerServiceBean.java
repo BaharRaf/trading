@@ -1,5 +1,6 @@
 package net.froihofer.dsfinance.bank.ejb;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -16,8 +17,10 @@ import java.util.stream.Collectors;
 /**
  * Dedicated service bean for customer management.
  * Handles all customer-related CRUD operations.
+ * Secured with @RolesAllowed - only accessible by employee role.
  */
 @Stateless
+@RolesAllowed("employee")
 public class CustomerServiceBean implements CustomerServiceLocal {
 
     @PersistenceContext
