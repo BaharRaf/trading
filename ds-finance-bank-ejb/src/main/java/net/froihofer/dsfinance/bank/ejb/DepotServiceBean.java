@@ -5,7 +5,6 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import net.froihofer.dsfinance.bank.api.CustomerServiceLocal;
 import net.froihofer.dsfinance.bank.api.DepotServiceLocal;
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.PortfolioPositionDTO;
@@ -27,27 +26,14 @@ public class DepotServiceBean implements DepotServiceLocal {
     private EntityManager em;
 
     @EJB
-    private CustomerServiceLocal customerService;
+    private CustomerServiceBean customerService;
 
     @EJB
     private TradingServiceAdapterBean tradingAdapter;
 
     @Override
-    public DepotEntity getOrCreateDepot(long customerId) {
-        CustomerEntity customer = customerService.findById(customerId);
-        if (customer == null) {
-            throw new IllegalArgumentException("Customer not found: " + customerId);
-        }
-
-        if (customer.getDepot() == null) {
-            DepotEntity depot = new DepotEntity();
-            depot.setCustomer(customer);
-            customer.setDepot(depot);
-            em.persist(depot);
-            em.flush();
-        }
-
-        return customer.getDepot();
+    public void ensureDepotExists(long customerId) {
+        getOrCreateDepotEntity(customerId);
     }
 
     @Override
@@ -59,7 +45,7 @@ public class DepotServiceBean implements DepotServiceLocal {
             throw new IllegalArgumentException("Purchase price must be positive");
         }
 
-        DepotEntity depot = getOrCreateDepot(customerId);
+        DepotEntity depot = getOrCreateDepotEntity(customerId);
         String symbol = normalizeSymbol(stockSymbol);
         StockEntity stock = findOrCreateStock(symbol);
 
@@ -89,7 +75,7 @@ public class DepotServiceBean implements DepotServiceLocal {
             throw new IllegalArgumentException("Quantity must be positive");
         }
 
-        CustomerEntity customer = customerService.findById(customerId);
+        CustomerEntity customer = customerService.getEntityById(customerId);
         if (customer == null || customer.getDepot() == null) {
             throw new IllegalArgumentException("Customer has no portfolio");
         }
@@ -126,7 +112,7 @@ public class DepotServiceBean implements DepotServiceLocal {
 
     @Override
     public List<PortfolioPositionDTO> getDepotPositions(long customerId) {
-        CustomerEntity customer = customerService.findById(customerId);
+        CustomerEntity customer = customerService.getEntityById(customerId);
         if (customer == null || customer.getDepot() == null) {
             return new ArrayList<>();
         }
@@ -178,7 +164,29 @@ public class DepotServiceBean implements DepotServiceLocal {
         return new PortfolioDTO(customerId, positions, totalValue);
     }
 
-    // Helper methods
+    // Internal helper methods
+    
+    /**
+     * Internal method to get or create depot entity.
+     * Not exposed in interface to avoid entity dependencies.
+     */
+    private DepotEntity getOrCreateDepotEntity(long customerId) {
+        CustomerEntity customer = customerService.getEntityById(customerId);
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer not found: " + customerId);
+        }
+
+        if (customer.getDepot() == null) {
+            DepotEntity depot = new DepotEntity();
+            depot.setCustomer(customer);
+            customer.setDepot(depot);
+            em.persist(depot);
+            em.flush();
+        }
+
+        return customer.getDepot();
+    }
+
     private String normalizeSymbol(String symbol) {
         if (symbol == null) return null;
         String s = symbol.trim();
