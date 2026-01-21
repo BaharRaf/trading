@@ -45,6 +45,9 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
   private CustomerServiceLocal customerService;
 
   @EJB
+  private CustomerServiceBean customerServiceBean;
+
+  @EJB
   private DepotServiceLocal depotService;
 
   @Resource
@@ -58,8 +61,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
 
     @Override
     public CustomerDTO findCustomerById(long customerId) {
-        CustomerEntity c = customerService.findById(customerId);
-        return c == null ? null : toDto(c);
+        return customerService.findById(customerId);
     }
 
     @Override
@@ -144,7 +146,7 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
         if (sessionContext != null && sessionContext.isCallerInRole("customer")) {
             // Customer role - validate they're accessing their own account
             String username = sessionContext.getCallerPrincipal().getName();
-            CustomerEntity authenticatedCustomer = customerService.findByUsername(username);
+            CustomerDTO authenticatedCustomer = customerService.findByUsername(username);
 
             if (authenticatedCustomer == null) {
                 throw new SecurityException("Customer not found for username: " + username);
@@ -258,16 +260,5 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
             return bank;
         }
         return banks.get(0);
-    }
-
-    private CustomerDTO toDto(CustomerEntity c) {
-        return new CustomerDTO(
-                c.getId(),
-                c.getCustomerNumber(),
-                c.getFirstName(),
-                c.getLastName(),
-                c.getAddress(),
-                c.getUsername()
-        );
     }
 }
