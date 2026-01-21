@@ -72,41 +72,44 @@ public class CustomerServiceBean implements CustomerServiceLocal {
     }
 
     @Override
-    public CustomerEntity findById(long id) {
-        return em.find(CustomerEntity.class, id);
+    public CustomerDTO findById(long id) {
+        CustomerEntity entity = em.find(CustomerEntity.class, id);
+        return entity == null ? null : toDto(entity);
     }
 
     @Override
-    public CustomerEntity findByCustomerNumber(String customerNumber) {
+    public CustomerDTO findByCustomerNumber(String customerNumber) {
         if (customerNumber == null || customerNumber.isBlank()) {
             return null;
         }
 
         try {
-            return em.createQuery(
+            CustomerEntity entity = em.createQuery(
                     "SELECT c FROM CustomerEntity c WHERE c.customerNumber = :number", 
                     CustomerEntity.class
                 )
                 .setParameter("number", customerNumber)
                 .getSingleResult();
+            return toDto(entity);
         } catch (NoResultException e) {
             return null;
         }
     }
 
     @Override
-    public CustomerEntity findByUsername(String username) {
+    public CustomerDTO findByUsername(String username) {
         if (username == null || username.isBlank()) {
             return null;
         }
 
         try {
-            return em.createQuery(
+            CustomerEntity entity = em.createQuery(
                     "SELECT c FROM CustomerEntity c WHERE c.username = :username", 
                     CustomerEntity.class
                 )
                 .setParameter("username", username)
                 .getSingleResult();
+            return toDto(entity);
         } catch (NoResultException e) {
             return null;
         }
@@ -128,15 +131,55 @@ public class CustomerServiceBean implements CustomerServiceLocal {
     }
 
     @Override
-    public void updateCustomer(CustomerEntity customer) {
+    public void updateCustomer(CustomerDTO customer) {
         if (customer == null || customer.getId() == null) {
             throw new IllegalArgumentException("Customer and customer ID must not be null");
         }
         
-        em.merge(customer);
+        CustomerEntity entity = em.find(CustomerEntity.class, customer.getId());
+        if (entity == null) {
+            throw new IllegalArgumentException("Customer not found with ID: " + customer.getId());
+        }
+        
+        // Update fields
+        entity.setFirstName(customer.getFirstName());
+        entity.setLastName(customer.getLastName());
+        entity.setAddress(customer.getAddress());
+        // Note: username and customerNumber typically shouldn't change
+        
+        em.merge(entity);
     }
 
-    // Helper method
+    // Internal helper methods for entity access (used by other beans)
+    
+    /**
+     * Internal method to get entity directly (for use by other service beans).
+     * Not exposed in interface to avoid entity dependencies.
+     */
+    public CustomerEntity getEntityById(long id) {
+        return em.find(CustomerEntity.class, id);
+    }
+    
+    /**
+     * Internal method to get entity by username (for use by other service beans).
+     */
+    public CustomerEntity getEntityByUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+        try {
+            return em.createQuery(
+                    "SELECT c FROM CustomerEntity c WHERE c.username = :username", 
+                    CustomerEntity.class
+                )
+                .setParameter("username", username)
+                .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    // Helper method for DTO conversion
     private CustomerDTO toDto(CustomerEntity c) {
         return new CustomerDTO(
             c.getId(),
