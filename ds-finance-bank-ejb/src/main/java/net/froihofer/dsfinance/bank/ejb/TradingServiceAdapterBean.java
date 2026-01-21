@@ -2,190 +2,109 @@ package net.froihofer.dsfinance.bank.ejb;
 
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
-import jakarta.xml.ws.BindingProvider;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
-import net.froihofer.dsfinance.ws.trading.api.PublicStockQuote;
-import net.froihofer.dsfinance.ws.trading.api.TradingWSException_Exception;
-import net.froihofer.dsfinance.ws.trading.api.TradingWebService;
-import net.froihofer.dsfinance.ws.trading.api.TradingWebServiceService;
-import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.endpoint.Client;
-import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.frontend.ClientProxyFactoryBean;
+import org.apache.cxf.jaxws.endpoint.dynamic.JaxWsDynamicClientFactory;
 import org.apache.cxf.transport.http.HTTPConduit;
-import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
-import net.froihofer.dsfinance.bank.entity.StockEntity;
 
-
+/**
+ * TradingService adapter. For Part 2 we intentionally use a dynamic SOAP client so that
+ * no generated stubs are required. This demonstrates the Web Service call.
+ *
+ * Configure credentials via system properties:
+ * -Dtrading.ws.user=... -Dtrading.ws.pass=...
+ */
 @Stateless
-@RolesAllowed({"employee", "customer"})
+@RolesAllowed({"employee","customer"})
 public class TradingServiceAdapterBean {
 
-    @PersistenceContext
-    private EntityManager em;
+  private static final Logger log = LoggerFactory.getLogger(TradingServiceAdapterBean.class);
 
+  // WSDL as given in the assignment:
+  private static final String WSDL_URL = "https://edu.dedisys.org/ds-finance/ws/TradingService?wsdl";
 
-    private static final Logger LOG = LoggerFactory.getLogger(TradingServiceAdapterBean.class);
+  public List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery) {
+    try {
+      JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
+      Client client = dcf.createClient(new URL(WSDL_URL));
 
-    // System properties (set on the WildFly JVM)
-    private static final String PROP_USER = "trading.ws.user";
-    private static final String PROP_PASS = "trading.ws.pass";
-    private static final String PROP_ENDPOINT = "trading.ws.endpoint";
+      // Basic authentication (required by the course WS):
+      String user = System.getProperty("trading.ws.user", "csdc26vz_04");
+      String pass = System.getProperty("trading.ws.pass", "Eequaizah4sh");
+      HTTPConduit conduit = (HTTPConduit) client.getConduit();
+      AuthorizationPolicy auth = new AuthorizationPolicy();
+      auth.setUserName(user);
+      auth.setPassword(pass);
+      auth.setAuthorizationType("Basic");
+      conduit.setAuthorization(auth);
 
-    // Default endpoint (SOAP address, NOT ?wsdl)
-    private static final String DEFAULT_ENDPOINT =
-            "https://edu.dedisys.org/ds-finance/ws/TradingService";
+      // Operation name according to WSDL documentation snippet:
+      Object[] response = client.invoke("findStockQuotesByCompanyName", companyNameQuery);
 
-    // Recommended: place the WSDL into resources so build+runtime do NOT depend on fetching the WSDL over HTTP.
-    // Path: ds-finance-bank-ejb/src/main/resources/META-INF/wsdl-consumed/TradingService.wsdl
-    private static final String CLASSPATH_WSDL = "META-INF/wsdl-consumed/TradingService.wsdl";
+      // Convert response to DTOs using reflection (works with generated types too):
+      return mapQuotes(response.length > 0 ? response[0] : null);
+    } catch (Exception e) {
+      log.error("TradingService call failed", e);
+      throw new RuntimeException("TradingService call failed: " + e.getMessage(), e);
+    }
+  }
 
-    private volatile TradingWebService port;
+  @SuppressWarnings("unchecked")
+  private List<StockQuoteDTO> mapQuotes(Object raw) {
+    List<StockQuoteDTO> out = new ArrayList<>();
+    if (raw == null) return out;
 
-    public List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery) {
-        String q = (companyNameQuery == null) ? "" : companyNameQuery.trim();
-
-        try {
-            List<PublicStockQuote> quotes = getPort().findStockQuotesByCompanyName(q);
-            if (quotes == null) return List.of();
-
-            List<StockQuoteDTO> out = new ArrayList<>(quotes.size());
-            for (PublicStockQuote wsQuote : quotes) {
-                out.add(toDto(wsQuote));
-            }
-
-            // Cache symbol -> companyName in DB (best effort)
-            cacheStocks(out);
-
-            return out;
-
-
-        } catch (TradingWSException_Exception e) {
-            LOG.warn("TradingService returned a domain error for query='{}': {}", q, e.getMessage());
-            throw new RuntimeException("TradingService call failed: " + e.getMessage(), e);
-        } catch (Exception e) {
-            LOG.error("TradingService call failed for query='{}'", q, e);
-            throw new RuntimeException("TradingService call failed: " + e.getMessage(), e);
-        }
+    if (raw instanceof List<?>) {
+      for (Object o : (List<?>) raw) out.add(toDto(o));
+      return out;
+    }
+    if (raw.getClass().isArray()) {
+      int n = java.lang.reflect.Array.getLength(raw);
+      for (int i = 0; i < n; i++) out.add(toDto(java.lang.reflect.Array.get(raw, i)));
+      return out;
     }
 
-    private void cacheStocks(List<StockQuoteDTO> quotes) {
-        if (quotes == null || quotes.isEmpty()) return;
+    // Single item:
+    out.add(toDto(raw));
+    return out;
+  }
 
-        for (StockQuoteDTO q : quotes) {
-            if (q == null) continue;
-
-            String symbol = normalizeSymbol(q.getSymbol());
-            if (symbol == null) continue;
-
-            String companyName = (q.getCompanyName() != null) ? q.getCompanyName().trim() : null;
-
-            try {
-                StockEntity existing = em.createQuery(
-                                "SELECT s FROM StockEntity s WHERE s.symbol = :symbol", StockEntity.class)
-                        .setParameter("symbol", symbol)
-                        .getSingleResult();
-
-                // Update companyName if we have a better one
-                if (companyName != null && !companyName.isBlank()) {
-                    if (existing.getCompanyName() == null || existing.getCompanyName().isBlank()) {
-                        existing.setCompanyName(companyName);
-                    }
-                }
-            } catch (NoResultException e) {
-                // create new
-                StockEntity stock = new StockEntity(symbol, companyName);
-                em.persist(stock);
-            } catch (Exception ignored) {
-                // Best-effort only: never break the WS call due to caching issues
-            }
-        }
+  private StockQuoteDTO toDto(Object quote) {
+    if (quote == null) return new StockQuoteDTO(null, null, null, Instant.now());
+    try {
+      String symbol = (String) invokeGetter(quote, "getSymbol");
+      String company = (String) invokeGetter(quote, "getCompanyName");
+      Object priceObj = invokeGetter(quote, "getPrice");
+      BigDecimal price = priceObj instanceof BigDecimal ? (BigDecimal) priceObj : (priceObj != null ? new BigDecimal(priceObj.toString()) : null);
+      Object tsObj = tryInvokeGetter(quote, "getTimestamp");
+      Instant ts = (tsObj instanceof Instant) ? (Instant) tsObj : Instant.now();
+      return new StockQuoteDTO(symbol, company, price, ts);
+    } catch (Exception e) {
+      // Fallback: return minimal string form
+      return new StockQuoteDTO(null, quote.toString(), null, Instant.now());
     }
+  }
 
-    private String normalizeSymbol(String symbol) {
-        if (symbol == null) return null;
-        String s = symbol.trim();
-        return s.isEmpty() ? null : s.toUpperCase(java.util.Locale.ROOT);
+  private Object invokeGetter(Object target, String methodName) throws Exception {
+    Method m = target.getClass().getMethod(methodName);
+    return m.invoke(target);
+  }
+
+  private Object tryInvokeGetter(Object target, String methodName) {
+    try {
+      return invokeGetter(target, methodName);
+    } catch (Exception e) {
+      return null;
     }
-
-
-    private TradingWebService getPort() {
-        TradingWebService p = port;
-        if (p != null) return p;
-
-        synchronized (this) {
-            if (port == null) {
-                port = createAndConfigurePort();
-            }
-            return port;
-        }
-    }
-
-    private TradingWebService createAndConfigurePort() {
-        URL wsdl = Thread.currentThread().getContextClassLoader().getResource(CLASSPATH_WSDL);
-
-        // If WSDL is packaged locally: use it. Otherwise: fall back to generated default URL.
-        TradingWebServiceService service = (wsdl != null)
-                ? new TradingWebServiceService(wsdl)
-                : new TradingWebServiceService();
-
-        TradingWebService p = service.getTradingWebServicePort();
-        configureEndpointAndAuth(p);
-        return p;
-    }
-
-    private void configureEndpointAndAuth(TradingWebService p) {
-        String user = requiredSystemProperty(PROP_USER);
-        String pass = requiredSystemProperty(PROP_PASS);
-        String endpoint = System.getProperty(PROP_ENDPOINT, DEFAULT_ENDPOINT);
-
-        // Make sure we hit the SOAP endpoint (not necessarily what is stored in the WSDL)
-        ((BindingProvider) p).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
-
-        Client client = ClientProxy.getClient(p);
-        HTTPConduit conduit = (HTTPConduit) client.getConduit();
-
-        AuthorizationPolicy auth = new AuthorizationPolicy();
-        auth.setUserName(user);
-        auth.setPassword(pass);
-        auth.setAuthorizationType("Basic");
-        conduit.setAuthorization(auth);
-
-        HTTPClientPolicy http = new HTTPClientPolicy();
-        http.setConnectionTimeout(5_000);
-        http.setReceiveTimeout(15_000);
-        http.setAllowChunking(false);
-        conduit.setClient(http);
-    }
-
-    private StockQuoteDTO toDto(PublicStockQuote q) {
-        if (q == null) return new StockQuoteDTO(null, null, null);
-
-        // Map the WS object onto your DTO
-        return new StockQuoteDTO(
-                q.getSymbol(),
-                q.getCompanyName(),
-                q.getLastTradePrice(),
-                null,                 // "change" not delivered by this WSDL -> keep null
-                q.getStockExchange()
-        );
-    }
-
-    private String requiredSystemProperty(String name) {
-        String v = System.getProperty(name);
-        if (v == null || v.isBlank()) {
-            throw new IllegalStateException(
-                    "Missing required system property '" + name + "'. " +
-                            "Set it on the WildFly JVM, e.g. -D" + name + "=..."
-            );
-        }
-        return v.trim();
-    }
+  }
 }

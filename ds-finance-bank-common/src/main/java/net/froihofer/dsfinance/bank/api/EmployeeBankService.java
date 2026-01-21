@@ -1,10 +1,8 @@
 package net.froihofer.dsfinance.bank.api;
 
 import jakarta.ejb.Remote;
-import java.math.BigDecimal;
 import java.util.List;
 import net.froihofer.dsfinance.bank.dto.CustomerDTO;
-import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 
 @Remote
@@ -16,16 +14,9 @@ public interface EmployeeBankService {
 
   List<CustomerDTO> findCustomersByName(String firstName, String lastName);
 
+  /**
+   * WebService demo call (TradingService):
+   * Searches stock quotes by (partial) company name.
+   */
   List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery);
-
-  StockQuoteDTO findStockQuoteBySymbol(String symbol);
-
-  // Trading operations
-  BigDecimal buyStockForCustomer(long customerId, String symbol, int quantity);
-
-  BigDecimal sellStockForCustomer(long customerId, String symbol, int quantity);
-
-  PortfolioDTO getCustomerPortfolio(long customerId);
-
-  BigDecimal getInvestableVolume();
 }
