@@ -1,0 +1,72 @@
+<!-- 
+  FIXED Datasource Configuration for Persistent H2 Database
+  
+  INSTRUCTIONS:
+  1. Stop WildFly
+  2. Open: $WILDFLY_HOME/standalone/configuration/standalone.xml
+  3. Find the existing DsFinanceBankDS datasource (search for "DsFinanceBankDS")
+  4. Replace it with this configuration
+  5. Save and restart WildFly
+  
+  Database will be stored in: $WILDFLY_HOME/standalone/data/ds_finance_bank.mv.db
+-->
+
+<datasource jndi-name="java:/datasources/DsFinanceBankDS"
+            pool-name="DsFinanceBankDS" 
+            enabled="true" 
+            use-java-context="true" 
+            use-ccm="true">
+  
+  <!-- FIXED URL: Uses WildFly data directory instead of ~ -->
+  <connection-url>jdbc:h2:${jboss.server.data.dir}/ds_finance_bank;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;FILE_LOCK=FS</connection-url>
+  
+  <driver>h2</driver>
+  
+  <security>
+    <user-name>sa</user-name>
+    <password>sa</password>
+  </security>
+  
+  <!-- Connection pool settings -->
+  <pool>
+    <min-pool-size>1</min-pool-size>
+    <max-pool-size>20</max-pool-size>
+  </pool>
+  
+  <!-- Validation settings to prevent stale connections -->
+  <validation>
+    <validate-on-match>true</validate-on-match>
+    <background-validation>false</background-validation>
+  </validation>
+  
+  <!-- Statement settings -->
+  <statement>
+    <prepared-statement-cache-size>32</prepared-statement-cache-size>
+    <share-prepared-statements>true</share-prepared-statements>
+  </statement>
+</datasource>
+
+<!--
+  ALTERNATIVE: If you want database in a custom location
+  
+  Windows:
+  <connection-url>jdbc:h2:C:/trading-data/ds_finance_bank;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1</connection-url>
+  
+  Linux/Mac:
+  <connection-url>jdbc:h2:/opt/trading-data/ds_finance_bank;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1</connection-url>
+  
+  Make sure to create the directory first:
+  Windows: mkdir C:\trading-data
+  Linux/Mac: mkdir -p /opt/trading-data
+-->
+
+<!--
+  PARAMETERS EXPLAINED:
+  
+  ${jboss.server.data.dir} = $WILDFLY_HOME/standalone/data
+  AUTO_SERVER=TRUE = Allow multiple connections (for H2 console, etc.)
+  DB_CLOSE_DELAY=-1 = Keep database open until WildFly shuts down
+  FILE_LOCK=FS = Use file system locking (prevents corruption)
+  
+  Result: Database file at $WILDFLY_HOME/standalone/data/ds_finance_bank.mv.db
+-->
