@@ -17,9 +17,9 @@ import net.froihofer.dsfinance.bank.api.CustomerBankService;
 import net.froihofer.dsfinance.bank.api.CustomerServiceLocal;
 import net.froihofer.dsfinance.bank.api.DepotServiceLocal;
 import net.froihofer.dsfinance.bank.api.EmployeeBankService;
+import net.froihofer.dsfinance.bank.dto.CustomerDTO;
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
-import net.froihofer.dsfinance.bank.entity.CustomerEntity;
 
 /**
  * Customer bank service with security context validation.
@@ -66,7 +66,7 @@ public class CustomerBankServiceBean implements CustomerBankService {
         String sym = symbol == null ? null : symbol.trim();
         
         // Get authenticated customer
-        CustomerEntity customer = getAuthenticatedCustomer();
+        CustomerDTO customer = getAuthenticatedCustomer();
         
         // Customers can only buy for themselves (validation happens here)
         validateCustomerAccess(customer.getId());
@@ -77,7 +77,7 @@ public class CustomerBankServiceBean implements CustomerBankService {
     @Override
     public BigDecimal sellStock(String symbol, int quantity) {
         // Get authenticated customer
-        CustomerEntity customer = getAuthenticatedCustomer();
+        CustomerDTO customer = getAuthenticatedCustomer();
         
         // Customers can only sell from their own account
         validateCustomerAccess(customer.getId());
@@ -88,7 +88,7 @@ public class CustomerBankServiceBean implements CustomerBankService {
     @Override
     public PortfolioDTO getMyPortfolio() {
         // Get authenticated customer
-        CustomerEntity customer = getAuthenticatedCustomer();
+        CustomerDTO customer = getAuthenticatedCustomer();
         
         // Use depot service for portfolio retrieval
         return depotService.getCustomerPortfolio(customer.getId());
@@ -96,12 +96,12 @@ public class CustomerBankServiceBean implements CustomerBankService {
 
     /**
      * Gets the currently authenticated customer from the security context.
-     * @return Customer entity for the authenticated user
+     * @return Customer DTO for the authenticated user
      * @throws IllegalStateException if customer not found
      */
-    private CustomerEntity getAuthenticatedCustomer() {
+    private CustomerDTO getAuthenticatedCustomer() {
         String username = sessionContext.getCallerPrincipal().getName();
-        CustomerEntity customer = customerService.findByUsername(username);
+        CustomerDTO customer = customerService.findByUsername(username);
         
         if (customer == null) {
             throw new IllegalStateException("No customer found for username: " + username);
@@ -120,7 +120,7 @@ public class CustomerBankServiceBean implements CustomerBankService {
     private void validateCustomerAccess(long customerId) {
         if (sessionContext.isCallerInRole("customer")) {
             String username = sessionContext.getCallerPrincipal().getName();
-            CustomerEntity authenticatedCustomer = customerService.findByUsername(username);
+            CustomerDTO authenticatedCustomer = customerService.findByUsername(username);
             
             if (authenticatedCustomer == null) {
                 throw new SecurityException("Customer not found for username: " + username);
