@@ -1,54 +1,109 @@
 package net.froihofer.dsfinance.bank.entity;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "CUSTOMER")
-@NamedQueries({
-    @NamedQuery(name = "Customer.findByName",
-        query = "SELECT c FROM CustomerEntity c WHERE " +
-                "(:first IS NULL OR LOWER(c.firstName) LIKE LOWER(CONCAT('%', :first, '%'))) AND " +
-                "(:last  IS NULL OR LOWER(c.lastName)  LIKE LOWER(CONCAT('%', :last,  '%')))"
-    )
-})
-public class CustomerEntity {
-
+@NamedQuery(
+        name = "Customer.findByName",
+        query = "SELECT c FROM CustomerEntity c WHERE c.firstName LIKE :first AND c.lastName LIKE :last"
+)
+public class CustomerEntity implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "CUSTOMER_NUMBER", nullable = false, unique = true, length = 32)
+  @Column(unique = true, nullable = false)
   private String customerNumber;
 
-  @Column(name = "FIRST_NAME", nullable = false, length = 80)
   private String firstName;
-
-  @Column(name = "LAST_NAME", nullable = false, length = 80)
   private String lastName;
-
-  @Column(name = "ADDRESS", nullable = false, length = 255)
   private String address;
 
-  public CustomerEntity() {}
+  @Column(unique = true)
+  private String username;
+
+  @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private DepotEntity depot;
+
+  @Version
+  private Long version;
+
+  public CustomerEntity() {
+  }
 
   public CustomerEntity(String customerNumber, String firstName, String lastName, String address) {
     this.customerNumber = customerNumber;
     this.firstName = firstName;
     this.lastName = lastName;
     this.address = address;
+    // Generate username from customer number
+    this.username = "cust_" + customerNumber;
   }
 
-  public Long getId() { return id; }
+  // Getters and Setters
+  public Long getId() {
+    return id;
+  }
 
-  public String getCustomerNumber() { return customerNumber; }
-  public void setCustomerNumber(String customerNumber) { this.customerNumber = customerNumber; }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-  public String getFirstName() { return firstName; }
-  public void setFirstName(String firstName) { this.firstName = firstName; }
+  public String getCustomerNumber() {
+    return customerNumber;
+  }
 
-  public String getLastName() { return lastName; }
-  public void setLastName(String lastName) { this.lastName = lastName; }
+  public void setCustomerNumber(String customerNumber) {
+    this.customerNumber = customerNumber;
+  }
 
-  public String getAddress() { return address; }
-  public void setAddress(String address) { this.address = address; }
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public DepotEntity getDepot() {
+    return depot;
+  }
+
+  public void setDepot(DepotEntity depot) {
+    this.depot = depot;
+  }
+
+  public Long getVersion() {
+    return version;
+  }
+
+  public void setVersion(Long version) {
+    this.version = version;
+  }
 }

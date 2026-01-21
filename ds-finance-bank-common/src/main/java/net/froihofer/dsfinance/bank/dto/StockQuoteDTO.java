@@ -2,39 +2,81 @@ package net.froihofer.dsfinance.bank.dto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.Instant;
 
 public class StockQuoteDTO implements Serializable {
-  private static final long serialVersionUID = 1L;
-
   private String symbol;
   private String companyName;
-  private BigDecimal price;
-  private Instant timestamp;
+  private BigDecimal lastTradePrice;
+  private BigDecimal change;
+  private String exchange;
 
-  public StockQuoteDTO() {}
-
-  public StockQuoteDTO(String symbol, String companyName, BigDecimal price, Instant timestamp) {
-    this.symbol = symbol;
-    this.companyName = companyName;
-    this.price = price;
-    this.timestamp = timestamp;
+  public StockQuoteDTO() {
   }
 
-  public String getSymbol() { return symbol; }
-  public void setSymbol(String symbol) { this.symbol = symbol; }
+  public StockQuoteDTO(String symbol, String companyName, BigDecimal lastTradePrice) {
+    this.symbol = symbol;
+    this.companyName = companyName;
+    this.lastTradePrice = lastTradePrice;
+  }
 
-  public String getCompanyName() { return companyName; }
-  public void setCompanyName(String companyName) { this.companyName = companyName; }
+  public StockQuoteDTO(String symbol, String companyName, BigDecimal lastTradePrice,
+                       BigDecimal change, String exchange) {
+    this.symbol = symbol;
+    this.companyName = companyName;
+    this.lastTradePrice = lastTradePrice;
+    this.change = change;
+    this.exchange = exchange;
+  }
 
-  public BigDecimal getPrice() { return price; }
-  public void setPrice(BigDecimal price) { this.price = price; }
+  // Getters and Setters
+  public String getSymbol() {
+    return symbol;
+  }
 
-  public Instant getTimestamp() { return timestamp; }
-  public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+  public void setSymbol(String symbol) {
+    this.symbol = symbol;
+  }
+
+  public String getCompanyName() {
+    return companyName;
+  }
+
+  public void setCompanyName(String companyName) {
+    this.companyName = companyName;
+  }
+
+  public BigDecimal getLastTradePrice() {
+    return lastTradePrice;
+  }
+
+  public void setLastTradePrice(BigDecimal lastTradePrice) {
+    this.lastTradePrice = lastTradePrice;
+  }
+
+  public BigDecimal getChange() {
+    return change;
+  }
+
+  public void setChange(BigDecimal change) {
+    this.change = change;
+  }
+
+  public String getExchange() {
+    return exchange;
+  }
+
+  public void setExchange(String exchange) {
+    this.exchange = exchange;
+  }
 
   @Override
   public String toString() {
-    return "StockQuoteDTO{symbol='" + symbol + "', companyName='" + companyName + "', price=" + price + ", ts=" + timestamp + "}";
+    return "StockQuoteDTO{" +
+            "symbol='" + symbol + '\'' +
+            ", companyName='" + companyName + '\'' +
+            ", lastTradePrice=" + lastTradePrice +
+            ", change=" + change +
+            ", exchange='" + exchange + '\'' +
+            '}';
   }
 }
