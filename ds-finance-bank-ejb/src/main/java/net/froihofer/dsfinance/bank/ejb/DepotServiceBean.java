@@ -1,5 +1,6 @@
 package net.froihofer.dsfinance.bank.ejb;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -18,8 +19,10 @@ import java.util.Locale;
 /**
  * Dedicated service bean for portfolio (depot) management.
  * Handles all stock position operations and portfolio calculations.
+ * Secured with @RolesAllowed - only accessible by employee role.
  */
 @Stateless
+@RolesAllowed("employee")
 public class DepotServiceBean implements DepotServiceLocal {
 
     @PersistenceContext
