@@ -3,7 +3,6 @@ package net.froihofer.dsfinance.bank.api;
 import jakarta.ejb.Local;
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.PortfolioPositionDTO;
-import net.froihofer.dsfinance.bank.entity.DepotEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,16 +10,17 @@ import java.util.List;
 /**
  * Local service interface for portfolio (depot) management.
  * Handles stock positions and portfolio calculations.
+ * NOTE: This interface uses only DTOs, not entities, to avoid module dependencies.
  */
 @Local
 public interface DepotServiceLocal {
     
     /**
-     * Gets or creates a depot for a customer.
+     * Ensures a depot exists for a customer.
+     * Creates one if it doesn't exist.
      * @param customerId Customer ID
-     * @return Depot entity
      */
-    DepotEntity getOrCreateDepot(long customerId);
+    void ensureDepotExists(long customerId);
     
     /**
      * Adds shares to a stock position (creates new position if doesn't exist).
