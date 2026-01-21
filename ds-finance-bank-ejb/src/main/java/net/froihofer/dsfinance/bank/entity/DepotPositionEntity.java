@@ -3,6 +3,7 @@ package net.froihofer.dsfinance.bank.entity;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Entity
 @Table(name = "DEPOT_POSITION")
@@ -29,6 +30,64 @@ public class DepotPositionEntity implements Serializable {
     public DepotPositionEntity() {
     }
 
+    /**
+     * Adds more shares and recalculates the weighted average purchase price.
+     * Formula: new_avg = (old_qty * old_avg + additional_qty * new_price) / (old_qty + additional_qty)
+     * 
+     * @param additionalQuantity Number of shares to add
+     * @param newPrice Price per share of the new purchase
+     */
+    public void addQuantity(int additionalQuantity, BigDecimal newPrice) {
+        if (additionalQuantity <= 0) {
+            throw new IllegalArgumentException("Additional quantity must be positive");
+        }
+        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("New price must be positive");
+        }
+
+        int oldQty = (this.quantity != null) ? this.quantity : 0;
+        BigDecimal oldAvg = (this.averagePurchasePrice != null) ? this.averagePurchasePrice : BigDecimal.ZERO;
+
+        // Calculate weighted average price
+        // Total value of existing shares
+        BigDecimal totalOldValue = oldAvg.multiply(new BigDecimal(oldQty));
+        
+        // Value of new shares
+        BigDecimal totalNewValue = newPrice.multiply(new BigDecimal(additionalQuantity));
+        
+        // New total quantity
+        int newTotalQty = oldQty + additionalQuantity;
+        
+        // New weighted average price
+        BigDecimal newAvgPrice = totalOldValue.add(totalNewValue)
+            .divide(new BigDecimal(newTotalQty), 4, RoundingMode.HALF_UP);
+
+        this.quantity = newTotalQty;
+        this.averagePurchasePrice = newAvgPrice;
+    }
+
+    /**
+     * Removes shares from the position. Does not recalculate average price.
+     * 
+     * @param quantityToRemove Number of shares to remove
+     * @throws IllegalArgumentException if trying to remove more shares than owned
+     */
+    public void removeQuantity(int quantityToRemove) {
+        if (quantityToRemove <= 0) {
+            throw new IllegalArgumentException("Quantity to remove must be positive");
+        }
+        
+        int currentQty = (this.quantity != null) ? this.quantity : 0;
+        
+        if (currentQty < quantityToRemove) {
+            throw new IllegalArgumentException(
+                "Cannot remove " + quantityToRemove + " shares. Only " + currentQty + " available."
+            );
+        }
+        
+        this.quantity = currentQty - quantityToRemove;
+    }
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -53,7 +112,6 @@ public class DepotPositionEntity implements Serializable {
     public void setStock(StockEntity stock) {
         this.stock = stock;
     }
-
     public Integer getQuantity() {
         return quantity;
     }
