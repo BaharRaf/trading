@@ -67,6 +67,12 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     }
 
     @Override
+    public StockQuoteDTO findStockQuoteBySymbol(String symbol) {
+        // reuse your already working “find current price by symbol” logic
+        return findQuoteBySymbolWithFallback(symbol);
+    }
+
+    @Override
     public BigDecimal buyStockForCustomer(long customerId, String symbol, int quantity) {
         if (quantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
 

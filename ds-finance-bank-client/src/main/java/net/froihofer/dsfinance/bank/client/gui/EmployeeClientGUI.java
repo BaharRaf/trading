@@ -51,6 +51,8 @@ public class EmployeeClientGUI extends JFrame {
     private JTextField txtStockSearch;
     private JTable stockTable;
     private DefaultTableModel stockTableModel;
+    private JTextField txtStockSearchSymbol;
+
 
     // Bank Volume Tab
     private JLabel lblInvestableVolume;
@@ -532,13 +534,27 @@ public class EmployeeClientGUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        // Search by Company Name (existing)
         searchPanel.add(new JLabel("Company Name:"));
         txtStockSearch = new JTextField(20);
         searchPanel.add(txtStockSearch);
 
-        JButton btnSearch = new JButton("Search");
-        btnSearch.addActionListener(e -> searchStocks());
-        searchPanel.add(btnSearch);
+        JButton btnSearchByName = new JButton("Search Name");
+        btnSearchByName.addActionListener(e -> searchStocksByCompanyName());
+        searchPanel.add(btnSearchByName);
+
+        searchPanel.add(Box.createHorizontalStrut(20));
+
+        // Search by Symbol (new)
+        searchPanel.add(new JLabel("Symbol:"));
+        JTextField txtStockSymbol = new JTextField(10);
+        searchPanel.add(txtStockSymbol);
+
+        JButton btnSearchSymbol = new JButton("Search Symbol");
+        btnSearchSymbol.addActionListener(e -> searchStockBySymbol(txtStockSymbol.getText()));
+        searchPanel.add(btnSearchSymbol);
+
 
         panel.add(searchPanel, BorderLayout.NORTH);
 
@@ -558,7 +574,7 @@ public class EmployeeClientGUI extends JFrame {
         return panel;
     }
 
-    private void searchStocks() {
+    private void searchStocksByCompanyName() {
         SwingWorker<List<StockQuoteDTO>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<StockQuoteDTO> doInBackground() throws Exception {
@@ -572,7 +588,7 @@ public class EmployeeClientGUI extends JFrame {
                     List<StockQuoteDTO> quotes = get();
                     displayStocks(quotes);
                 } catch (Exception e) {
-                    log.error("Failed to search stocks", e);
+                    log.error("Failed to search stocks by company name", e);
                     JOptionPane.showMessageDialog(EmployeeClientGUI.this,
                             "Error: " + e.getMessage(),
                             "Error", JOptionPane.ERROR_MESSAGE);
@@ -581,6 +597,38 @@ public class EmployeeClientGUI extends JFrame {
         };
         worker.execute();
     }
+
+    private void searchStockBySymbol(String symbolInput) {
+        SwingWorker<StockQuoteDTO, Void> worker = new SwingWorker<>() {
+            @Override
+            protected StockQuoteDTO doInBackground() throws Exception {
+                String sym = symbolInput.trim().toUpperCase();
+                if (sym.isEmpty()) throw new IllegalArgumentException("Symbol must not be empty");
+                return employeeService.findStockQuoteBySymbol(sym);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    StockQuoteDTO q = get();
+                    // show single result in the same table
+                    stockTableModel.setRowCount(0);
+                    stockTableModel.addRow(new Object[]{
+                            q.getSymbol(),
+                            q.getCompanyName(),
+                            String.format("$%.2f", q.getLastTradePrice()),
+                            (q.getChange() != null) ? String.format("$%.2f", q.getChange()) : "N/A"
+                    });
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(EmployeeClientGUI.this,
+                            "Error: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
+    }
+
 
     private void displayStocks(List<StockQuoteDTO> quotes) {
         stockTableModel.setRowCount(0);

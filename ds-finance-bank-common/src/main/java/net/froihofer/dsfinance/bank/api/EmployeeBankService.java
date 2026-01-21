@@ -18,6 +18,8 @@ public interface EmployeeBankService {
 
   List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery);
 
+  StockQuoteDTO findStockQuoteBySymbol(String symbol);
+
   // Trading operations
   BigDecimal buyStockForCustomer(long customerId, String symbol, int quantity);
 

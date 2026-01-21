@@ -11,6 +11,7 @@ net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI$2.class
 net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI$4.class
 net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI$1.class
 net\froihofer\dsfinance\bank\client\CustomerManagementPanel$1.class
+net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI$12.class
 net\froihofer\dsfinance\bank\client\gui\CustomerClientGUI.class
 net\froihofer\dsfinance\bank\client\gui\EmployeeClientGUI$6.class
 net\froihofer\dsfinance\bank\client\BankServiceConnector.class
