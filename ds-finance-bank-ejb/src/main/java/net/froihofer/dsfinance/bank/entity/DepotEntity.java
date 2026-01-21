@@ -2,12 +2,29 @@ package net.froihofer.dsfinance.bank.entity;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Depot entity representing a customer's securities account.
+ * 
+ * PROFESSOR FEEDBACK APPLIED:
+ * - NO List<DepotPositionEntity> here!
+ * - "For one-to-many relationships that can grow large, having a list on the 
+ *    'one' side that contains all 'many' elements is problematic."
+ * - "Better modeling: use unidirectional associations from the many side to the one side."
+ * - Positions are queried via: SELECT p FROM DepotPositionEntity p WHERE p.depot.id = :depotId
+ */
 @Entity
 @Table(name = "DEPOT")
+@NamedQueries({
+    @NamedQuery(
+        name = "Depot.findByCustomerId",
+        query = "SELECT d FROM DepotEntity d WHERE d.customer.id = :customerId"
+    )
+})
 public class DepotEntity implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,8 +33,13 @@ public class DepotEntity implements Serializable {
     @JoinColumn(name = "customer_id")
     private CustomerEntity customer;
 
-    @OneToMany(mappedBy = "depot", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<DepotPositionEntity> positions = new ArrayList<>();
+    /*
+     * REMOVED per professor feedback:
+     * @OneToMany(mappedBy = "depot", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+     * private List<DepotPositionEntity> positions = new ArrayList<>();
+     * 
+     * Instead, use query: "SELECT p FROM DepotPositionEntity p WHERE p.depot.id = :depotId"
+     */
 
     @Version
     private Long version;
@@ -40,14 +62,6 @@ public class DepotEntity implements Serializable {
 
     public void setCustomer(CustomerEntity customer) {
         this.customer = customer;
-    }
-
-    public List<DepotPositionEntity> getPositions() {
-        return positions;
-    }
-
-    public void setPositions(List<DepotPositionEntity> positions) {
-        this.positions = positions;
     }
 
     public Long getVersion() {

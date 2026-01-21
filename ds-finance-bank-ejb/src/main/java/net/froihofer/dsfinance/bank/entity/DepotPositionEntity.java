@@ -5,9 +5,34 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+/**
+ * Depot position entity representing a holding of a specific stock.
+ * 
+ * PROFESSOR FEEDBACK APPLIED:
+ * - This entity points TO Depot (Many-to-One) - unidirectional from many side
+ * - Depot does NOT have a list pointing back here
+ * - Use NamedQueries to find positions for a depot
+ */
 @Entity
 @Table(name = "DEPOT_POSITION")
+@NamedQueries({
+    @NamedQuery(
+        name = "DepotPosition.findByDepotId",
+        query = "SELECT p FROM DepotPositionEntity p WHERE p.depot.id = :depotId"
+    ),
+    @NamedQuery(
+        name = "DepotPosition.findByDepotAndStock",
+        query = "SELECT p FROM DepotPositionEntity p WHERE p.depot.id = :depotId AND p.stock.id = :stockId"
+    ),
+    @NamedQuery(
+        name = "DepotPosition.findByDepotAndSymbol",
+        query = "SELECT p FROM DepotPositionEntity p WHERE p.depot.id = :depotId AND p.stock.symbol = :symbol"
+    )
+})
 public class DepotPositionEntity implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

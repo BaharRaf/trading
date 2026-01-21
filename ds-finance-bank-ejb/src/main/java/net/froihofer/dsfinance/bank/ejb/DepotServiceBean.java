@@ -6,6 +6,7 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import net.froihofer.dsfinance.bank.api.DepotServiceLocal;
 import net.froihofer.dsfinance.bank.dto.PortfolioDTO;
 import net.froihofer.dsfinance.bank.dto.PortfolioPositionDTO;
@@ -20,6 +21,11 @@ import java.util.Locale;
  * Dedicated service bean for portfolio (depot) management.
  * Handles all stock position operations and portfolio calculations.
  * Secured with @RolesAllowed - only accessible by employee role.
+ * 
+ * PROFESSOR FEEDBACK APPLIED:
+ * - Uses QUERIES to retrieve positions, NOT depot.getPositions()
+ * - "Better modeling: use unidirectional associations from the many side"
+ * - All calculations (profit/loss, totals) done on SERVER, not client
  */
 @Stateless
 @RolesAllowed("employee")
@@ -49,8 +55,8 @@ public class DepotServiceBean implements DepotServiceLocal {
         String symbol = normalizeSymbol(stockSymbol);
         StockEntity stock = findOrCreateStock(symbol);
 
-        // Find existing position or create new one
-        DepotPositionEntity position = findPosition(depot, stock);
+        // Find existing position using QUERY (not list!)
+        DepotPositionEntity position = findPositionByQuery(depot.getId(), stock.getId());
 
         if (position == null) {
             // Create new position
@@ -59,7 +65,6 @@ public class DepotServiceBean implements DepotServiceLocal {
             position.setStock(stock);
             position.setQuantity(quantity);
             position.setAveragePurchasePrice(purchasePrice);
-            depot.getPositions().add(position);
             em.persist(position);
         } else {
             // Update existing position using weighted average
@@ -86,7 +91,8 @@ public class DepotServiceBean implements DepotServiceLocal {
             throw new IllegalArgumentException("Stock not found: " + symbol);
         }
 
-        DepotPositionEntity position = findPosition(customer.getDepot(), stock);
+        // Find position using QUERY (not list!)
+        DepotPositionEntity position = findPositionByQuery(customer.getDepot().getId(), stock.getId());
         if (position == null) {
             throw new IllegalArgumentException("No position found for stock: " + symbol);
         }
@@ -103,7 +109,6 @@ public class DepotServiceBean implements DepotServiceLocal {
 
         // If no shares left, remove the position entirely
         if (position.getQuantity() == 0) {
-            customer.getDepot().getPositions().remove(position);
             em.remove(position);
         }
 
@@ -117,9 +122,12 @@ public class DepotServiceBean implements DepotServiceLocal {
             return new ArrayList<>();
         }
 
-        List<PortfolioPositionDTO> positions = new ArrayList<>();
+        // Get positions using QUERY (professor feedback: don't use list on entity!)
+        List<DepotPositionEntity> positions = findPositionsByDepotId(customer.getDepot().getId());
+        List<PortfolioPositionDTO> result = new ArrayList<>();
 
-        for (DepotPositionEntity pos : customer.getDepot().getPositions()) {
+        for (DepotPositionEntity pos : positions) {
+            // SERVER-SIDE CALCULATIONS (professor feedback)
             BigDecimal currentPrice = getCurrentPriceBySymbol(pos.getStock().getSymbol());
             BigDecimal totalValue = currentPrice.multiply(new BigDecimal(pos.getQuantity()));
             BigDecimal purchaseValue = pos.getAveragePurchasePrice().multiply(new BigDecimal(pos.getQuantity()));
@@ -136,10 +144,10 @@ public class DepotServiceBean implements DepotServiceLocal {
                     profitLoss
             );
 
-            positions.add(dto);
+            result.add(dto);
         }
 
-        return positions;
+        return result;
     }
 
     @Override
@@ -164,7 +172,37 @@ public class DepotServiceBean implements DepotServiceLocal {
         return new PortfolioDTO(customerId, positions, totalValue);
     }
 
-    // Internal helper methods
+    // ==================== QUERY-BASED POSITION RETRIEVAL ====================
+    // Professor Feedback: "Use unidirectional associations from the many side"
+
+    /**
+     * Find all positions for a depot using a QUERY.
+     * This replaces depot.getPositions() which was removed per professor feedback.
+     */
+    private List<DepotPositionEntity> findPositionsByDepotId(Long depotId) {
+        TypedQuery<DepotPositionEntity> query = em.createNamedQuery(
+                "DepotPosition.findByDepotId", DepotPositionEntity.class);
+        query.setParameter("depotId", depotId);
+        return query.getResultList();
+    }
+
+    /**
+     * Find a specific position by depot and stock using a QUERY.
+     * This replaces iterating through depot.getPositions().
+     */
+    private DepotPositionEntity findPositionByQuery(Long depotId, Long stockId) {
+        try {
+            TypedQuery<DepotPositionEntity> query = em.createNamedQuery(
+                    "DepotPosition.findByDepotAndStock", DepotPositionEntity.class);
+            query.setParameter("depotId", depotId);
+            query.setParameter("stockId", stockId);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    // ==================== INTERNAL HELPER METHODS ====================
 
     /**
      * Find customer entity directly using EntityManager.
@@ -277,19 +315,5 @@ public class DepotServiceBean implements DepotServiceLocal {
         } catch (NoResultException e) {
             return null;
         }
-    }
-
-    private DepotPositionEntity findPosition(DepotEntity depot, StockEntity stock) {
-        if (depot == null || depot.getPositions() == null || stock == null) {
-            return null;
-        }
-
-        for (DepotPositionEntity pos : depot.getPositions()) {
-            if (pos.getStock() != null && pos.getStock().getId().equals(stock.getId())) {
-                return pos;
-            }
-        }
-
-        return null;
     }
 }
