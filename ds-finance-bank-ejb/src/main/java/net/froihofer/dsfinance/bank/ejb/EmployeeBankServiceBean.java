@@ -235,8 +235,8 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
                 .getResultList();
         if (banks.isEmpty()) {
             BankEntity bank = new BankEntity();
-            bank.setTotalInvestableVolume(new BigDecimal("1000000"));
-            bank.setAvailableVolume(new BigDecimal("1000000"));
+            bank.setTotalInvestableVolume(new BigDecimal("1000000000"));
+            bank.setAvailableVolume(new BigDecimal("1000000000"));
             em.persist(bank);
             return bank;
         }
