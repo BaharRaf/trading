@@ -86,12 +86,15 @@ public class CustomerServiceBean implements CustomerServiceLocal {
             return null;
         }
 
+        // Trim whitespace for exact matching
+        String trimmedNumber = customerNumber.trim();
+
         try {
             CustomerEntity entity = em.createQuery(
                     "SELECT c FROM CustomerEntity c WHERE c.customerNumber = :number", 
                     CustomerEntity.class
                 )
-                .setParameter("number", customerNumber)
+                .setParameter("number", trimmedNumber)
                 .getSingleResult();
             return toDto(entity);
         } catch (NoResultException e) {
@@ -120,12 +123,16 @@ public class CustomerServiceBean implements CustomerServiceLocal {
 
     @Override
     public List<CustomerDTO> searchByName(String firstName, String lastName) {
+        // Handle null/empty parameters - if both are null/empty, return all customers
+        String firstPattern = (firstName == null || firstName.isBlank()) ? "%" : "%" + firstName.trim() + "%";
+        String lastPattern = (lastName == null || lastName.isBlank()) ? "%" : "%" + lastName.trim() + "%";
+        
         List<CustomerEntity> results = em.createNamedQuery(
                 "Customer.findByName", 
                 CustomerEntity.class
             )
-            .setParameter("first", firstName)
-            .setParameter("last", lastName)
+            .setParameter("first", firstPattern)
+            .setParameter("last", lastPattern)
             .getResultList();
         
         return results.stream()
