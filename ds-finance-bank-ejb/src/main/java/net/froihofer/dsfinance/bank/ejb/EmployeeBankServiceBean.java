@@ -56,6 +56,11 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     }
 
     @Override
+    public CustomerDTO findCustomerByCustomerNumber(String customerNumber) {
+        return customerService.findByCustomerNumber(customerNumber);
+    }
+
+    @Override
     public List<CustomerDTO> findCustomersByName(String firstName, String lastName) {
         // Delegate to CustomerServiceLocal
         return customerService.searchByName(firstName, lastName);
@@ -80,18 +85,32 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
         validateCustomerAccess(customerId);
 
         String sym = normalizeSymbol(symbol);
-        BigDecimal pricePerShare = getCurrentPriceBySymbol(sym);
-        BigDecimal totalCost = pricePerShare.multiply(BigDecimal.valueOf(quantity));
-
-        // Get bank entity and use business method
+        
+        // Step 1: Check bank has sufficient volume (estimate with current price)
+        BigDecimal estimatedPrice = getCurrentPriceBySymbol(sym);
+        BigDecimal estimatedCost = estimatedPrice.multiply(BigDecimal.valueOf(quantity));
         BankEntity bank = getBankEntity();
-        bank.decreaseVolume(totalCost);  // Uses business method with validation
+        
+        if (bank.getAvailableVolume().compareTo(estimatedCost) < 0) {
+            throw new IllegalStateException(
+                "Insufficient bank volume. Available: " + bank.getAvailableVolume() + 
+                ", Estimated cost: " + estimatedCost
+            );
+        }
 
-        // Use DepotService to add position (handles weighted average automatically)
-        depotService.addStockPosition(customerId, sym, quantity, pricePerShare);
+        // Step 2: Execute BUY order on stock exchange via WS (CRITICAL!)
+        // If this fails, RuntimeException is thrown and transaction rolls back
+        BigDecimal executionPrice = tradingAdapter.buy(sym, quantity);
+        BigDecimal totalCost = executionPrice.multiply(BigDecimal.valueOf(quantity));
+
+        // Step 3: Decrease bank volume (using actual execution price)
+        bank.decreaseVolume(totalCost);
+
+        // Step 4: Add position to customer depot
+        depotService.addStockPosition(customerId, sym, quantity, executionPrice);
 
         em.flush();
-        return pricePerShare;
+        return executionPrice;
     }
 
     @Override
@@ -102,18 +121,39 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
         validateCustomerAccess(customerId);
 
         String sym = normalizeSymbol(symbol);
-        BigDecimal pricePerShare = getCurrentPriceBySymbol(sym);
-        BigDecimal totalRevenue = pricePerShare.multiply(BigDecimal.valueOf(quantity));
 
-        // Use DepotService to remove position
+        // Step 1: Verify customer has sufficient shares BEFORE calling WS
+        // This is done inside removeStockPosition, but we check first to fail fast
+        PortfolioDTO portfolio = depotService.getCustomerPortfolio(customerId);
+        boolean hasShares = false;
+        for (var pos : portfolio.getPositions()) {
+            if (pos.getSymbol() != null && pos.getSymbol().equalsIgnoreCase(sym)) {
+                if (pos.getQuantity() >= quantity) {
+                    hasShares = true;
+                    break;
+                }
+            }
+        }
+        if (!hasShares) {
+            throw new IllegalArgumentException(
+                "Insufficient shares of " + sym + " to sell. Requested: " + quantity
+            );
+        }
+
+        // Step 2: Execute SELL order on stock exchange via WS (CRITICAL!)
+        // If this fails, RuntimeException is thrown and transaction rolls back
+        BigDecimal executionPrice = tradingAdapter.sell(sym, quantity);
+        BigDecimal totalRevenue = executionPrice.multiply(BigDecimal.valueOf(quantity));
+
+        // Step 3: Remove position from customer depot
         depotService.removeStockPosition(customerId, sym, quantity);
 
-        // Get bank entity and use business method
+        // Step 4: Increase bank volume (using actual execution price)
         BankEntity bank = getBankEntity();
-        bank.increaseVolume(totalRevenue);  // Uses business method
+        bank.increaseVolume(totalRevenue);
 
         em.flush();
-        return pricePerShare;
+        return executionPrice;
     }
 
     @Override

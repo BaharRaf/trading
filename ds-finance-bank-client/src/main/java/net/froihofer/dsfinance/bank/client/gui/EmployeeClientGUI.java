@@ -142,6 +142,16 @@ public class EmployeeClientGUI extends JFrame {
         btnSearchById.addActionListener(e -> searchCustomerById());
         searchPanel.add(btnSearchById);
 
+        // NEW: Search by Customer Number
+        searchPanel.add(Box.createHorizontalStrut(20));
+        searchPanel.add(new JLabel("Customer #:"));
+        JTextField txtSearchByNumber = new JTextField(15);
+        searchPanel.add(txtSearchByNumber);
+
+        JButton btnSearchByNumber = new JButton("Search by #");
+        btnSearchByNumber.addActionListener(e -> searchCustomerByNumber(txtSearchByNumber.getText()));
+        searchPanel.add(btnSearchByNumber);
+
         panel.add(searchPanel, BorderLayout.CENTER);
 
         // Bottom: Results Table
@@ -292,6 +302,50 @@ public class EmployeeClientGUI extends JFrame {
                     }
                 } catch (Exception e) {
                     log.error("Failed to find customer", e);
+                    JOptionPane.showMessageDialog(EmployeeClientGUI.this,
+                            "Error: " + e.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    /**
+     * Search customer by customer number (e.g., "CUST-12345")
+     */
+    private void searchCustomerByNumber(String customerNumber) {
+        SwingWorker<CustomerDTO, Void> worker = new SwingWorker<>() {
+            @Override
+            protected CustomerDTO doInBackground() throws Exception {
+                String number = customerNumber.trim();
+                if (number.isEmpty()) {
+                    throw new IllegalArgumentException("Customer number must not be empty");
+                }
+                return employeeService.findCustomerByCustomerNumber(number);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    CustomerDTO customer = get();
+                    if (customer != null) {
+                        customerTableModel.setRowCount(0);
+                        customerTableModel.addRow(new Object[]{
+                                customer.getCustomerId(),
+                                customer.getCustomerNumber(),
+                                customer.getFirstName(),
+                                customer.getLastName(),
+                                customer.getAddress(),
+                                customer.getUsername()
+                        });
+                    } else {
+                        JOptionPane.showMessageDialog(EmployeeClientGUI.this,
+                                "Customer not found with number: " + customerNumber,
+                                "Not Found", JOptionPane.WARNING_MESSAGE);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to find customer by number", e);
                     JOptionPane.showMessageDialog(EmployeeClientGUI.this,
                             "Error: " + e.getMessage(),
                             "Error", JOptionPane.ERROR_MESSAGE);

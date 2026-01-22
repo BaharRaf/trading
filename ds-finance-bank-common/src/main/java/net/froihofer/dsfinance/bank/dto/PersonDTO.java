@@ -18,7 +18,7 @@ public class PersonDTO implements Serializable {
     public PersonDTO() {
     }
     
-    public PersonDTO(String firstName, String lastName, String address,
+    public PersonDTO(String firstName, String lastName, String address, 
                      String loginUsername, String loginPassword) {
         this.firstName = firstName;
         this.lastName = lastName;

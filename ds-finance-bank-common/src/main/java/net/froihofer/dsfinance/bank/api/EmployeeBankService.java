@@ -14,6 +14,13 @@ public interface EmployeeBankService {
 
   CustomerDTO findCustomerById(long customerId);
 
+  /**
+   * Find customer by customer number (e.g., "C-12345").
+   * @param customerNumber The unique customer number
+   * @return CustomerDTO or null if not found
+   */
+  CustomerDTO findCustomerByCustomerNumber(String customerNumber);
+
   List<CustomerDTO> findCustomersByName(String firstName, String lastName);
 
   List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery);

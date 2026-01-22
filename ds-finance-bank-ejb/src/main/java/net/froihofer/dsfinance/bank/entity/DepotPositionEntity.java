@@ -137,6 +137,7 @@ public class DepotPositionEntity implements Serializable {
     public void setStock(StockEntity stock) {
         this.stock = stock;
     }
+
     public Integer getQuantity() {
         return quantity;
     }

@@ -19,7 +19,7 @@ public class BankServiceConnector {
         Properties props = new Properties();
         props.put(Context.INITIAL_CONTEXT_FACTORY,
                 "org.wildfly.naming.client.WildFlyInitialContextFactory");
-        props.put(Context.PROVIDER_URL, "http-remoting://localhost:8080");
+        props.put(Context.PROVIDER_URL, "remote+http://localhost:8080");
         props.put(Context.SECURITY_PRINCIPAL, username);
         props.put(Context.SECURITY_CREDENTIALS, password);
 
@@ -27,8 +27,7 @@ public class BankServiceConnector {
         Context ctx = new InitialContext(props);
 
         // JNDI lookup (adjust based on your deployment)
-        String jndiName = "ejb:/ds-finance-bank-ejb/EmployeeBankServiceBean!"
-                + "net.froihofer.dsfinance.bank.api.EmployeeBankService";
+        String jndiName = "java:jboss/exported/ds-finance-bank-ear/ds-finance-bank-ejb/EmployeeBankServiceBean!net.froihofer.dsfinance.bank.api.EmployeeBankService";
 
         employeeService = (EmployeeBankService) ctx.lookup(jndiName);
     }
