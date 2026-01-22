@@ -188,4 +188,88 @@ public class TradingServiceAdapterBean {
         }
         return v.trim();
     }
+
+    // ==================== BUY / SELL via Stock Exchange WS ====================
+
+    /**
+     * Executes a BUY order on the stock exchange via the TradingWebService.
+     *
+     * @param symbol Stock symbol (e.g., "AAPL")
+     * @param shares Number of shares to buy
+     * @return The execution price per share returned by the exchange
+     * @throws RuntimeException if the WS call fails (triggers transaction rollback)
+     */
+    public java.math.BigDecimal buy(String symbol, int shares) {
+        String sym = normalizeSymbol(symbol);
+        if (sym == null || sym.isBlank()) {
+            throw new IllegalArgumentException("Symbol must not be blank");
+        }
+        if (shares <= 0) {
+            throw new IllegalArgumentException("Shares must be positive");
+        }
+
+        LOG.info("Executing BUY order: {} shares of {}", shares, sym);
+
+        try {
+            // Call the stock exchange WS to execute the buy order
+            java.math.BigDecimal executionPrice = getPort().buy(sym, shares);
+
+            if (executionPrice == null) {
+                throw new RuntimeException("TradingService returned null price for BUY order");
+            }
+
+            LOG.info("BUY order executed: {} shares of {} at {}", shares, sym, executionPrice);
+            return executionPrice;
+
+        } catch (TradingWSException_Exception e) {
+            LOG.error("TradingService BUY failed for symbol={}, shares={}: {}", sym, shares, e.getMessage());
+            // Throw RuntimeException to trigger transaction rollback
+            throw new RuntimeException("Stock exchange BUY order failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+            LOG.error("TradingService BUY failed for symbol={}, shares={}", sym, shares, e);
+            // Throw RuntimeException to trigger transaction rollback
+            throw new RuntimeException("Stock exchange BUY order failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Executes a SELL order on the stock exchange via the TradingWebService.
+     *
+     * @param symbol Stock symbol (e.g., "AAPL")
+     * @param shares Number of shares to sell
+     * @return The execution price per share returned by the exchange
+     * @throws RuntimeException if the WS call fails (triggers transaction rollback)
+     */
+    public java.math.BigDecimal sell(String symbol, int shares) {
+        String sym = normalizeSymbol(symbol);
+        if (sym == null || sym.isBlank()) {
+            throw new IllegalArgumentException("Symbol must not be blank");
+        }
+        if (shares <= 0) {
+            throw new IllegalArgumentException("Shares must be positive");
+        }
+
+        LOG.info("Executing SELL order: {} shares of {}", shares, sym);
+
+        try {
+            // Call the stock exchange WS to execute the sell order
+            java.math.BigDecimal executionPrice = getPort().sell(sym, shares);
+
+            if (executionPrice == null) {
+                throw new RuntimeException("TradingService returned null price for SELL order");
+            }
+
+            LOG.info("SELL order executed: {} shares of {} at {}", shares, sym, executionPrice);
+            return executionPrice;
+
+        } catch (TradingWSException_Exception e) {
+            LOG.error("TradingService SELL failed for symbol={}, shares={}: {}", sym, shares, e.getMessage());
+            // Throw RuntimeException to trigger transaction rollback
+            throw new RuntimeException("Stock exchange SELL order failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+            LOG.error("TradingService SELL failed for symbol={}, shares={}", sym, shares, e);
+            // Throw RuntimeException to trigger transaction rollback
+            throw new RuntimeException("Stock exchange SELL order failed: " + e.getMessage(), e);
+        }
+    }
 }

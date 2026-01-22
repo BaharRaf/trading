@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://ws.trading.dedisys.org/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             targetNamespace="http://ws.trading.dedisys.org/"
+             name="TradingWebServiceService">
+
+    <types>
+        <xsd:schema targetNamespace="http://ws.trading.dedisys.org/">
+            
+            <!-- PublicStockQuote Complex Type -->
+            <xsd:complexType name="publicStockQuote">
+                <xsd:sequence>
+                    <xsd:element name="symbol" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="companyName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="lastTradePrice" type="xsd:decimal" minOccurs="0"/>
+                    <xsd:element name="stockExchange" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <!-- TradingWSException -->
+            <xsd:complexType name="TradingWSException">
+                <xsd:sequence>
+                    <xsd:element name="message" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+
+            <!-- findStockQuotesByCompanyName Request -->
+            <xsd:element name="findStockQuotesByCompanyName">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="companyNameQuery" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- findStockQuotesByCompanyName Response -->
+            <xsd:element name="findStockQuotesByCompanyNameResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="return" type="tns:publicStockQuote" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- buy Request -->
+            <xsd:element name="buy">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="symbol" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="shares" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- buy Response -->
+            <xsd:element name="buyResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="return" type="xsd:decimal" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- sell Request -->
+            <xsd:element name="sell">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="symbol" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="shares" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- sell Response -->
+            <xsd:element name="sellResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="return" type="xsd:decimal" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- TradingWSException Fault -->
+            <xsd:element name="TradingWSException" type="tns:TradingWSException"/>
+
+        </xsd:schema>
+    </types>
+
+    <!-- Messages -->
+    <message name="findStockQuotesByCompanyName">
+        <part name="parameters" element="tns:findStockQuotesByCompanyName"/>
+    </message>
+
+    <message name="findStockQuotesByCompanyNameResponse">
+        <part name="parameters" element="tns:findStockQuotesByCompanyNameResponse"/>
+    </message>
+
+    <message name="buy">
+        <part name="parameters" element="tns:buy"/>
+    </message>
+
+    <message name="buyResponse">
+        <part name="parameters" element="tns:buyResponse"/>
+    </message>
+
+    <message name="sell">
+        <part name="parameters" element="tns:sell"/>
+    </message>
+
+    <message name="sellResponse">
+        <part name="parameters" element="tns:sellResponse"/>
+    </message>
+
+    <message name="TradingWSException">
+        <part name="fault" element="tns:TradingWSException"/>
+    </message>
+
+    <!-- Port Type -->
+    <portType name="TradingWebService">
+        
+        <operation name="findStockQuotesByCompanyName">
+            <input message="tns:findStockQuotesByCompanyName"/>
+            <output message="tns:findStockQuotesByCompanyNameResponse"/>
+            <fault name="TradingWSException" message="tns:TradingWSException"/>
+        </operation>
+
+        <operation name="buy">
+            <input message="tns:buy"/>
+            <output message="tns:buyResponse"/>
+            <fault name="TradingWSException" message="tns:TradingWSException"/>
+        </operation>
+
+        <operation name="sell">
+            <input message="tns:sell"/>
+            <output message="tns:sellResponse"/>
+            <fault name="TradingWSException" message="tns:TradingWSException"/>
+        </operation>
+
+    </portType>
+
+    <!-- Binding -->
+    <binding name="TradingWebServicePortBinding" type="tns:TradingWebService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        
+        <operation name="findStockQuotesByCompanyName">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="TradingWSException">
+                <soap:fault name="TradingWSException" use="literal"/>
+            </fault>
+        </operation>
+
+        <operation name="buy">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="TradingWSException">
+                <soap:fault name="TradingWSException" use="literal"/>
+            </fault>
+        </operation>
+
+        <operation name="sell">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="TradingWSException">
+                <soap:fault name="TradingWSException" use="literal"/>
+            </fault>
+        </operation>
+
+    </binding>
+
+    <!-- Service -->
+    <service name="TradingWebServiceService">
+        <port name="TradingWebServicePort" binding="tns:TradingWebServicePortBinding">
+            <soap:address location="https://edu.dedisys.org/ds-finance/ws/TradingService"/>
+        </port>
+    </service>
+
+</definitions>

@@ -110,8 +110,8 @@
               <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
               <wsdlOptions>
                 <wsdlOption>
-                  <wsdl>https://edu.dedisys.org/ds-finance/ws/TradingService?wsdl</wsdl>
-                  <extraargs>
+                    <wsdl>${project.basedir}/src/main/resources/META-INF/wsdl-consumed/TradingService.wsdl</wsdl>
+                    <extraargs>
                     <extraarg>-p</extraarg>
                     <extraarg>net.froihofer.dsfinance.ws.trading.api</extraarg>
                   </extraargs>
