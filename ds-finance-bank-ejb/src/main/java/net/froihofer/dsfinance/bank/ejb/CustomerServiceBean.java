@@ -59,14 +59,14 @@ public class CustomerServiceBean implements CustomerServiceLocal {
             try {
                 File jbossHome = new File(System.getProperty("jboss.home.dir"));
                 new WildflyAuthDBHelper(jbossHome).addUser(
-                    username, 
-                    initialPassword, 
-                    new String[]{"customer"}
+                        username,
+                        initialPassword,
+                        new String[]{"customer"}
                 );
             } catch (Exception e) {
                 throw new IllegalStateException(
-                    "Customer created in DB but WildFly user creation failed for username=" + username, 
-                    e
+                        "Customer created in DB but WildFly user creation failed for username=" + username,
+                        e
                 );
             }
         }
@@ -88,11 +88,11 @@ public class CustomerServiceBean implements CustomerServiceLocal {
 
         try {
             CustomerEntity entity = em.createQuery(
-                    "SELECT c FROM CustomerEntity c WHERE c.customerNumber = :number", 
-                    CustomerEntity.class
-                )
-                .setParameter("number", customerNumber)
-                .getSingleResult();
+                            "SELECT c FROM CustomerEntity c WHERE c.customerNumber = :number",
+                            CustomerEntity.class
+                    )
+                    .setParameter("number", customerNumber)
+                    .getSingleResult();
             return toDto(entity);
         } catch (NoResultException e) {
             return null;
@@ -107,11 +107,11 @@ public class CustomerServiceBean implements CustomerServiceLocal {
 
         try {
             CustomerEntity entity = em.createQuery(
-                    "SELECT c FROM CustomerEntity c WHERE c.username = :username", 
-                    CustomerEntity.class
-                )
-                .setParameter("username", username)
-                .getSingleResult();
+                            "SELECT c FROM CustomerEntity c WHERE c.username = :username",
+                            CustomerEntity.class
+                    )
+                    .setParameter("username", username)
+                    .getSingleResult();
             return toDto(entity);
         } catch (NoResultException e) {
             return null;
@@ -120,17 +120,26 @@ public class CustomerServiceBean implements CustomerServiceLocal {
 
     @Override
     public List<CustomerDTO> searchByName(String firstName, String lastName) {
+        // NamedQuery uses LIKE - we therefore provide wildcard patterns.
+        // If a value is null/blank, treat it as "match all".
+        String first = (firstName == null || firstName.isBlank())
+                ? "%"
+                : "%" + firstName.trim().toLowerCase() + "%";
+        String last = (lastName == null || lastName.isBlank())
+                ? "%"
+                : "%" + lastName.trim().toLowerCase() + "%";
+
         List<CustomerEntity> results = em.createNamedQuery(
-                "Customer.findByName", 
-                CustomerEntity.class
-            )
-            .setParameter("first", firstName)
-            .setParameter("last", lastName)
-            .getResultList();
-        
+                        "Customer.findByName",
+                        CustomerEntity.class
+                )
+                .setParameter("first", first)
+                .setParameter("last", last)
+                .getResultList();
+
         return results.stream()
-            .map(this::toDto)
-            .collect(Collectors.toList());
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -138,23 +147,23 @@ public class CustomerServiceBean implements CustomerServiceLocal {
         if (customer == null || customer.getId() == null) {
             throw new IllegalArgumentException("Customer and customer ID must not be null");
         }
-        
+
         CustomerEntity entity = em.find(CustomerEntity.class, customer.getId());
         if (entity == null) {
             throw new IllegalArgumentException("Customer not found with ID: " + customer.getId());
         }
-        
+
         // Update fields
         entity.setFirstName(customer.getFirstName());
         entity.setLastName(customer.getLastName());
         entity.setAddress(customer.getAddress());
         // Note: username and customerNumber typically shouldn't change
-        
+
         em.merge(entity);
     }
 
     // Internal helper methods for entity access (used by other beans)
-    
+
     /**
      * Internal method to get entity directly (for use by other service beans).
      * Not exposed in interface to avoid entity dependencies.
@@ -162,7 +171,7 @@ public class CustomerServiceBean implements CustomerServiceLocal {
     public CustomerEntity getEntityById(long id) {
         return em.find(CustomerEntity.class, id);
     }
-    
+
     /**
      * Internal method to get entity by username (for use by other service beans).
      */
@@ -172,11 +181,11 @@ public class CustomerServiceBean implements CustomerServiceLocal {
         }
         try {
             return em.createQuery(
-                    "SELECT c FROM CustomerEntity c WHERE c.username = :username", 
-                    CustomerEntity.class
-                )
-                .setParameter("username", username)
-                .getSingleResult();
+                            "SELECT c FROM CustomerEntity c WHERE c.username = :username",
+                            CustomerEntity.class
+                    )
+                    .setParameter("username", username)
+                    .getSingleResult();
         } catch (NoResultException e) {
             return null;
         }
@@ -185,12 +194,12 @@ public class CustomerServiceBean implements CustomerServiceLocal {
     // Helper method for DTO conversion
     private CustomerDTO toDto(CustomerEntity c) {
         return new CustomerDTO(
-            c.getId(),
-            c.getCustomerNumber(),
-            c.getFirstName(),
-            c.getLastName(),
-            c.getAddress(),
-            c.getUsername()
+                c.getId(),
+                c.getCustomerNumber(),
+                c.getFirstName(),
+                c.getLastName(),
+                c.getAddress(),
+                c.getUsername()
         );
     }
 }

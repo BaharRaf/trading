@@ -10,22 +10,24 @@ import net.froihofer.dsfinance.bank.dto.StockQuoteDTO;
 @Remote
 public interface EmployeeBankService {
 
-  long createCustomer(CustomerDTO customer);
+    long createCustomer(CustomerDTO customer);
 
-  CustomerDTO findCustomerById(long customerId);
+    CustomerDTO findCustomerById(long customerId);
 
-  List<CustomerDTO> findCustomersByName(String firstName, String lastName);
+    CustomerDTO findCustomerByCustomerNumber(String customerNumber);
 
-  List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery);
+    List<CustomerDTO> findCustomersByName(String firstName, String lastName);
 
-  StockQuoteDTO findStockQuoteBySymbol(String symbol);
+    List<StockQuoteDTO> findStockQuotesByCompanyName(String companyNameQuery);
 
-  // Trading operations
-  BigDecimal buyStockForCustomer(long customerId, String symbol, int quantity);
+    StockQuoteDTO findStockQuoteBySymbol(String symbol);
 
-  BigDecimal sellStockForCustomer(long customerId, String symbol, int quantity);
+    // Trading operations
+    BigDecimal buyStockForCustomer(long customerId, String symbol, int quantity);
 
-  PortfolioDTO getCustomerPortfolio(long customerId);
+    BigDecimal sellStockForCustomer(long customerId, String symbol, int quantity);
 
-  BigDecimal getInvestableVolume();
+    PortfolioDTO getCustomerPortfolio(long customerId);
+
+    BigDecimal getInvestableVolume();
 }

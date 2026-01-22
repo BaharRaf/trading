@@ -56,6 +56,11 @@ public class EmployeeBankServiceBean implements EmployeeBankService {
     }
 
     @Override
+    public CustomerDTO findCustomerByCustomerNumber(String customerNumber) {
+        return customerService.findByCustomerNumber(customerNumber);
+    }
+
+    @Override
     public List<CustomerDTO> findCustomersByName(String firstName, String lastName) {
         // Delegate to CustomerServiceLocal
         return customerService.searchByName(firstName, lastName);

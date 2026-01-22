@@ -33,7 +33,7 @@ public class EmployeeClientGUI extends JFrame {
     private JTextField txtFirstName, txtLastName, txtAddress;
     private JTextField txtLoginUsername;
     private JPasswordField txtInitialPassword;
-    private JTextField txtSearchFirstName, txtSearchLastName, txtSearchById;
+    private JTextField txtSearchFirstName, txtSearchLastName, txtSearchById, txtSearchCustomerNumber;
     private JTable customerTable;
     private DefaultTableModel customerTableModel;
 
@@ -134,6 +134,16 @@ public class EmployeeClientGUI extends JFrame {
 
         searchPanel.add(Box.createHorizontalStrut(20));
 
+        searchPanel.add(new JLabel("Customer Number:"));
+        txtSearchCustomerNumber = new JTextField(12);
+        searchPanel.add(txtSearchCustomerNumber);
+
+        JButton btnSearchByNumber = new JButton("Search by Number");
+        btnSearchByNumber.addActionListener(e -> searchCustomerByNumber());
+        searchPanel.add(btnSearchByNumber);
+
+        searchPanel.add(Box.createHorizontalStrut(20));
+
         searchPanel.add(new JLabel("Customer ID:"));
         txtSearchById = new JTextField(10);
         searchPanel.add(txtSearchById);
@@ -141,6 +151,7 @@ public class EmployeeClientGUI extends JFrame {
         JButton btnSearchById = new JButton("Search by ID");
         btnSearchById.addActionListener(e -> searchCustomerById());
         searchPanel.add(btnSearchById);
+
 
         panel.add(searchPanel, BorderLayout.CENTER);
 
@@ -300,6 +311,41 @@ public class EmployeeClientGUI extends JFrame {
         };
         worker.execute();
     }
+
+    private void searchCustomerByNumber() {
+        SwingWorker<CustomerDTO, Void> worker = new SwingWorker<>() {
+            @Override
+            protected CustomerDTO doInBackground() throws Exception {
+                String number = txtSearchCustomerNumber.getText().trim();
+                if (number.isEmpty()) {
+                    throw new IllegalArgumentException("Customer Number is required");
+                }
+                return employeeService.findCustomerByCustomerNumber(number);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    CustomerDTO customer = get();
+                    if (customer == null) {
+                        JOptionPane.showMessageDialog(EmployeeClientGUI.this,
+                                "No customer found for that customer number.",
+                                "Not Found", JOptionPane.INFORMATION_MESSAGE);
+                        customerTableModel.setRowCount(0);
+                        return;
+                    }
+                    displayCustomers(List.of(customer));
+                } catch (Exception e) {
+                    log.error("Error searching customer by number", e);
+                    JOptionPane.showMessageDialog(EmployeeClientGUI.this,
+                            "Error: " + e.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
+    }
+
 
     private void displayCustomers(List<CustomerDTO> customers) {
         customerTableModel.setRowCount(0);
